@@ -1,0 +1,970 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vibe Coding Chat</title>
+<style>
+  :root{
+    --bg:#f6f6f4; --panel:#ffffff; --ink:#1c1c1e; --muted:#6b6b70; --line:#e2e2de;
+    --accent:#2f5bea; --user:#d9e4ff; --assistant:#ececE8; --code-bg:#14161a; --code-ink:#e6e6e6; --err:#b42318; --err-bg:#fdecea;
+  }
+  *{box-sizing:border-box}
+  [hidden]{display:none!important}
+  html,body{height:100%;margin:0}
+  body{font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Arial,"Noto Sans Hebrew",sans-serif;
+       color:var(--ink);background:var(--bg);display:grid;grid-template-rows:auto auto 1fr;gap:10px;padding:12px}
+  header{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}
+  header label{display:flex;flex-direction:column;font-size:12px;color:var(--muted);gap:2px}
+  header input,header select,header button{font:inherit;height:38px;padding:0 10px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink)}
+  .keyrow{display:flex;gap:6px}
+  #key{width:240px;flex:1;min-width:0} #family{width:190px} #other{width:280px}
+  header button.icon{width:38px;padding:0;display:grid;place-items:center}
+  header button.icon svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  header button.ok{border-color:#2e9e4f;color:#1e7a3a}
+  button{font:inherit;cursor:pointer;border-radius:8px;border:1px solid var(--line);background:#fff;padding:7px 12px;color:var(--ink)}
+  button:hover{border-color:#bbb}
+  button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  button:disabled{opacity:.5;cursor:default}
+  .spacer{flex:1}
+  #meter{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+  #meter .row{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13px;color:var(--muted);margin-top:6px}
+  #meter .row b{color:var(--ink);font-weight:600}
+  #bar{height:24px;background:#ececea;border-radius:12px;overflow:hidden}
+  #fill{height:100%;width:0;border-radius:12px;transition:width .4s,background-color .4s}
+  main{display:grid;grid-template-columns:1fr 1fr;gap:12px;min-height:0}
+  section{background:var(--panel);border:1px solid var(--line);border-radius:10px;display:flex;flex-direction:column;min-height:0;overflow:hidden}
+  section>h2{margin:0;padding:9px 12px;font-size:13px;font-weight:600;color:var(--muted);border-bottom:1px solid var(--line);display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+  button.mini{padding:3px 10px;font-size:12px}
+  #memChip{font-size:12px;font-weight:400;color:var(--ink);background:#e9eef6;border-radius:999px;padding:1px 4px 1px 10px;direction:ltr}
+  #memChip button{border:none;background:transparent;padding:0 6px;font-size:15px;line-height:1.2;color:var(--muted)}
+
+  /* chat: bubbles sit on the side their text reads from; role is shown by color only */
+  #chat{flex:1;overflow:auto;padding:12px}
+  #chat .row{margin-bottom:10px}
+  .bubble{width:fit-content;max-width:88%;padding:9px 12px;border-radius:12px;word-wrap:break-word;overflow-wrap:anywhere}
+  .bubble.user{background:var(--user)}
+  .bubble.assistant{background:var(--assistant)}
+  .bubble.error{background:var(--err-bg);color:var(--err)}
+  .bubble.info{background:#e9eef6;color:var(--ink)}
+  .bubble pre.mem{margin:8px 0 0;padding:0;min-height:0;font:12px/1.45 system-ui,sans-serif;white-space:pre-wrap;direction:inherit;unicode-bidi:plaintext;text-align:start;color:var(--ink)}
+  .bubble p{margin:0 0 .6em;white-space:pre-wrap;text-align:start} .bubble p:last-child{margin-bottom:0}
+  .bubble p.raw{direction:ltr;text-align:left;font-size:13px}
+  .bubble a{color:var(--accent)}
+  .atts{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+  .atts img{max-height:120px;max-width:200px;border-radius:6px;display:block;border:1px solid rgba(0,0,0,.1)}
+  .atts .file{font-size:12px;background:rgba(255,255,255,.7);border-radius:6px;padding:3px 8px;direction:ltr}
+  .typing span{display:inline-block;width:6px;height:6px;margin:0 2px;border-radius:50%;background:#8a8a8f;animation:b 1s infinite}
+  .typing span:nth-child(2){animation-delay:.15s}.typing span:nth-child(3){animation-delay:.3s}
+  @keyframes b{0%,60%,100%{opacity:.3}30%{opacity:1}}
+  .empty{color:var(--muted);font-size:14px;text-align:center;max-width:34ch;margin:40px auto}
+
+  dialog{border:1px solid var(--line);border-radius:12px;padding:18px 20px;width:min(480px,calc(100% - 32px));color:var(--ink)}
+  dialog::backdrop{background:rgba(0,0,0,.3)}
+  dialog h3{margin:0 0 6px;font-size:16px}
+  dialog p{margin:0 0 12px;font-size:13px;color:var(--muted)}
+  dialog h4{margin:18px 0 6px;font-size:14px}
+  dialog .field{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted);margin-bottom:8px}
+  dialog .field input{font:inherit;height:38px;padding:0 10px;border:1px solid var(--line);border-radius:8px;width:160px;color:var(--ink)}
+  #skillInfo{font-size:14px;padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:#fafafa;direction:ltr;overflow-wrap:anywhere}
+  #scanVideo{width:100%;max-height:320px;background:#000;border-radius:8px;display:block;margin-top:4px}
+  .dlgrow{display:flex;gap:8px;margin-top:12px;align-items:center}
+  form.chatform{display:flex;flex-direction:column;gap:8px;padding:10px;border-top:1px solid var(--line)}
+  .inputrow{display:flex;gap:8px;align-items:stretch}
+  .inputrow button.iconbtn{width:48px;padding:0;display:grid;place-items:center}
+  .inputrow svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+  button.attach{background:#e4ebff;border-color:#c5d3fb;color:var(--accent)}
+  button.attach:hover:not(:disabled){background:#d3dfff;border-color:#a9bdf7}
+  textarea{flex:1;font:inherit;resize:none;height:64px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;color:var(--ink)}
+  #strip{display:flex;flex-wrap:wrap;gap:8px}
+  .chipx{position:relative;border:1px solid var(--line);border-radius:8px;background:#fafafa;display:flex;align-items:center;gap:6px;padding:4px 26px 4px 6px;font-size:12px;direction:ltr}
+  .chipx img{height:44px;max-width:80px;object-fit:cover;border-radius:4px;display:block}
+  .chipx button{position:absolute;top:2px;right:2px;border:none;background:transparent;padding:0 5px;font-size:16px;line-height:1.2;color:var(--muted)}
+
+  #codeWrap{flex:1;overflow:auto;background:var(--code-bg);color:var(--code-ink)}
+  pre{margin:0;padding:12px;font:13px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre;direction:ltr;text-align:left;user-select:text;min-height:100%}
+  pre.placeholder{color:#8b909b;white-space:normal;font-family:inherit;font-size:14px}
+  pre.writing{user-select:none}
+  @media (max-width:820px){
+    body{height:auto;min-height:100%} main{grid-template-columns:1fr} section{height:70vh}
+    #family,#other{width:100%} header label{flex:1 1 100%}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <label>OpenRouter API key
+    <span class="keyrow">
+      <input id="key" type="password" autocomplete="off" placeholder="sk-or-..." spellcheck="false">
+      <button id="scan" type="button" class="icon" title="Scan the key from a QR code with the camera" aria-label="Scan API key QR code">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="3.5"/></svg>
+      </button>
+      <button id="testKey" type="button" title="Check that this key works">Test</button>
+    </span>
+  </label>
+  <label>Model
+    <select id="family">
+      <option value="haiku">Claude Haiku (latest)</option>
+      <option value="sonnet">Claude Sonnet (latest)</option>
+      <option value="opus">Claude Opus (latest)</option>
+      <option value="other">Other model…</option>
+    </select>
+  </label>
+  <label id="otherWrap" hidden>OpenRouter model id
+    <input id="other" list="models" autocomplete="off" spellcheck="false" dir="ltr" placeholder="provider/model-name">
+    <datalist id="models"></datalist>
+  </label>
+  <span class="spacer"></span>
+  <button id="settings" type="button">Settings</button>
+  <button id="reset" type="button">Reset conversation</button>
+</header>
+
+<dialog id="dlg">
+  <form method="dialog">
+    <h3>Settings</h3>
+    <label class="field">Spend limit (US dollars)
+      <input id="budget" type="number" min="0" step="0.01" inputmode="decimal" placeholder="e.g. 2.00">
+    </label>
+    <p>Requests to the model stop when this session has spent this much, and the colored bar at the top is full. Raise the limit at any time to continue; the conversation is kept. Leave empty for no limit of your own. OpenRouter enforces the key's own limits separately and reports them in the chat. The limit is saved in this browser; the amount spent restarts when the page is reloaded.</p>
+    <h4>Skill</h4>
+    <p>A markdown file of instructions the model follows in every reply. It is added to the system prompt, so it is sent (and paid for) with every message, and applies from the next message. It stays loaded after Reset and after reloading this page.</p>
+    <div id="skillInfo">No skill loaded.</div>
+    <input type="file" id="skillFile" accept=".md,.markdown,.txt" hidden>
+    <div class="dlgrow">
+      <button type="button" id="skillPick">Attach skill file…</button>
+      <button type="button" id="skillClear" hidden>Remove skill</button>
+      <span class="spacer"></span>
+      <button value="close">Close</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="scanDlg">
+  <h3>Scan API key QR code</h3>
+  <p id="scanMsg">Starting camera…</p>
+  <video id="scanVideo" playsinline muted></video>
+  <div class="dlgrow"><span class="spacer"></span><button type="button" id="scanCancel">Cancel</button></div>
+</dialog>
+
+<div id="meter" aria-live="polite">
+  <div id="bar" role="progressbar" aria-label="Budget spent" aria-valuemin="0" aria-valuemax="100"><div id="fill"></div></div>
+  <div class="row">
+    <span>Budget spent: <b id="budgetText">no limit set (open Settings)</b></span>
+    <span>Last turn: <b id="lin">–</b> in, <b id="lout">–</b> out, <b id="lcost">–</b></span>
+    <span>Session total: <b id="tin">0</b> in, <b id="tout">0</b> out, <b id="tcost">$0.0000</b></span>
+    <span id="basis"></span>
+  </div>
+</div>
+
+<main>
+  <section>
+    <h2>Conversation
+      <span id="memChip" hidden>Memory: <span id="memName"></span><button id="memClear" type="button" title="Remove the loaded memory" aria-label="Remove the loaded memory">×</button></span>
+      <span class="spacer"></span>
+      <button id="saveChat" type="button" class="mini" title="Save this conversation as a markdown file">Save chat</button>
+      <button id="saveMem" type="button" class="mini" title="Summarize this conversation into a markdown memory file">Save memory</button>
+      <button id="loadMem" type="button" class="mini" title="Load a memory file into this conversation">Load memory</button>
+      <input type="file" id="memFile" accept=".md,.markdown,.txt" hidden>
+    </h2>
+    <div id="chat"></div>
+    <form id="form" class="chatform">
+      <div id="strip" hidden></div>
+      <div class="inputrow">
+        <button id="attach" type="button" class="iconbtn attach" title="Attach images or files. You can also paste or drop them." aria-label="Attach files"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg></button>
+        <input id="file" type="file" multiple hidden>
+        <textarea id="input" dir="auto" placeholder="Describe what you want to build. Paste a screenshot to show an error." aria-label="Your message"></textarea>
+        <button id="send" class="primary iconbtn" type="submit" title="Send" aria-label="Send"><svg viewBox="0 0 24 24" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
+        <button id="stop" type="button" hidden>Stop</button>
+      </div>
+    </form>
+  </section>
+  <section>
+    <h2>Generated code (read-only)
+      <span class="spacer"></span>
+      <button id="copyCode" type="button" disabled>Copy code</button>
+    </h2>
+    <div id="codeWrap"><pre id="codePre" class="placeholder">No code yet. When the model writes code, it appears here and is replaced by each new version.</pre></div>
+  </section>
+</main>
+
+<script>
+/* ================= CONFIG (safe to edit) ================= */
+const API = "https://openrouter.ai/api/v1";
+const FALLBACK_MODEL = {haiku:"anthropic/claude-haiku-4.5", sonnet:"anthropic/claude-sonnet-4.5", opus:"anthropic/claude-opus-4.1"}; // used only if the live model list can't be loaded
+const FALLBACK_WINDOW = 128000;   // used only if the model's context size is unknown
+const MAX_ATTACHMENTS = 5;
+const MAX_IMAGE_SIDE = 1568;      // screenshots are downscaled to this many pixels on the long side
+const MAX_PDF_BYTES = 10 * 1024 * 1024;
+const MAX_TEXT_FILE_BYTES = 500 * 1024;
+const MAX_SKILL_BYTES = 100 * 1024;
+const SYSTEM_PROMPT = `You are a coding partner for college students who are not programmers.
+Reply in the language the student writes in. Be terse: answer only what was asked.
+Never invent facts, APIs, settings, or causes of errors. If you do not know, say so. If something is unclear, ask ONE short question instead of guessing.
+Write plain text only: short paragraphs, no markdown, no bold, no headers, no bullet symbols, no emojis, no backticks.
+Write URLs in full as plain text.
+When code is needed, write TypeScript. Return ONE complete, runnable file in a single fenced block tagged typescript,
+even if only a small part changed. Never return partial snippets or "rest unchanged". Put nothing in the fence except code
+and normal English code comments. Before the code block, write one short plain sentence saying what you did.
+Students may paste screenshots of errors. Read them carefully, say in one sentence what is wrong, then give the full corrected file.`;
+// Used only for errors the app has no built-in advice for (see reportError).
+const ADVICE_PROMPT = `A student is using a chat app that calls OpenRouter, and a request just failed.
+In one or two short plain sentences, in the same language as the student's last message, say what the error means and the next step.
+Use only what the error text says. Do not guess causes or fixes. If the error text does not make the cause or the fix clear, say you do not know and ask the student ONE short question that would help.
+No markdown, no apologies.`;
+// Used by "Save memory". The app attaches the latest code itself, so the model never rewrites code.
+const MEMORY_PROMPT = `You write a memory file for a coding chat between a student (not a programmer) and an AI assistant.
+Output markdown only, about 250 words at most, with exactly these sections in this order:
+## Goal
+## Decisions and preferences
+## Current state
+## Open problems
+Write short "-" bullets under each heading. Keep the headings in English and write the bullets in the language the student used.
+Use only what is in the conversation. Do not invent anything. Do not include code: the app attaches the latest code separately.
+If an existing memory is provided, update it: keep what is still true, remove what was resolved or contradicted, and add what is new.`;
+
+/* Built-in messages. To add a language, copy the "en" block, translate it, and extend langOf(). */
+const T = {
+  en:{
+    needKey:"Paste or scan your OpenRouter API key first.",
+    needModel:"Enter a model id in the Other model box first.",
+    noImages:"This model cannot read images. Choose a Claude model, or remove the image.",
+    reading:"Still reading your attachments. Try again in a moment.",
+    exhausted:"Spend limit reached, so requests are stopped. Raise the spend limit in Settings to continue. Your conversation is kept.",
+    truncated:"The reply hit the model's length limit and was cut off. Ask it to continue, or to make the program smaller. The unfinished code was not added to the code window.",
+    tooLong:"The conversation is almost too long for this model. Consider Reset and restating your goal in one prompt.",
+    attLimit:n=>`Limit is ${n} attachments per message.`,
+    attPdf:(f,mb)=>`${f} is larger than ${mb} MB.`,
+    attText:(f,kb)=>`${f} is too large (limit ${kb} KB for text files).`,
+    attType:f=>`${f} is not a supported type. Use an image, a PDF, or a plain text or code file.`,
+    imgOpen:f=>`Could not open ${f}. Use PNG, JPEG, or WebP.`,
+    readFail:f=>`Could not read ${f}.`,
+    skillBig:(f,kb)=>`${f} is larger than ${kb} KB. A skill this large would add a high cost to every message.`,
+    skillBad:f=>`${f} is empty or not a text file. Attach a markdown (.md) file.`,
+    camBlocked:"Camera access was blocked. Allow the camera for this page in your browser, then try again.",
+    camNone:"No camera was found on this device. Paste the key instead.",
+    camBusy:"The camera is in use by another app. Close that app and try again.",
+    camSecure:"The camera needs a secure page. Open this page from https:// or http://localhost, or paste the key instead.",
+    camNoApi:"This browser cannot open a camera. Paste the key instead.",
+    camFail:"Could not start the camera. Paste the key instead.",
+    err401:"The key was rejected. Check that the whole key was copied, or scan it again.",
+    err402:"The key or account has no credit left. Ask whoever gave you the key for one with more credit.",
+    err404:"Model not found. Choose one of the Claude options in the model list, or check the model id.",
+    err413:"The message is too large. Remove an attachment or press Reset conversation.",
+    err429:"Too many requests. Wait a little and press Send again.",
+    errNet:"Could not reach OpenRouter. Check your internet connection and press Send again.",
+    errUnknown:"I do not recognize this error. Did it happen as soon as you pressed Send, or during the reply?",
+    nothingToSave:"Nothing to save yet. Have a conversation first.",
+    chatSaved:f=>`Conversation saved as ${f}.`,
+    memSaved:f=>`Memory saved as ${f}. It contains the summary below plus your latest code. After Reset, use Load memory to give it to a new conversation.`,
+    memLoaded:f=>`Memory loaded: ${f}. The model will use it from your next message.`,
+    memBig:(f,kb)=>`${f} is larger than ${kb} KB. A memory file this large would add a high cost to every message.`,
+    memBad:f=>`${f} is empty or not a text file. Attach the markdown (.md) memory file you saved.`
+  },
+  he:{
+    needKey:"הדביקו או סרקו קודם את מפתח ה-API של OpenRouter.",
+    needModel:"הזינו קודם מזהה מודל בשדה Other model.",
+    noImages:"המודל הזה לא יכול לקרוא תמונות. בחרו מודל Claude או הסירו את התמונה.",
+    reading:"הקבצים המצורפים עדיין נקראים. נסו שוב בעוד רגע.",
+    exhausted:"הגעתם למגבלת ההוצאה, ולכן הבקשות נעצרו. הגדילו את המגבלה בהגדרות כדי להמשיך. השיחה נשמרת.",
+    truncated:"התשובה נקטעה כי היא הגיעה לאורך המרבי של המודל. בקשו ממנו להמשיך או לצמצם את התוכנית. הקוד שלא הושלם לא נוסף לחלון הקוד.",
+    tooLong:"השיחה כמעט ארוכה מדי עבור המודל. שקלו לאפס ולנסח מחדש את המטרה בבקשה אחת.",
+    attLimit:n=>`אפשר לצרף עד ${n} קבצים להודעה.`,
+    attPdf:(f,mb)=>`הקובץ ${f} גדול מ-${mb} MB.`,
+    attText:(f,kb)=>`הקובץ ${f} גדול מדי (עד ${kb} KB לקובצי טקסט).`,
+    attType:f=>`סוג הקובץ ${f} לא נתמך. השתמשו בתמונה, ב-PDF או בקובץ טקסט או קוד.`,
+    imgOpen:f=>`לא ניתן לפתוח את ${f}. השתמשו ב-PNG, JPEG או WebP.`,
+    readFail:f=>`לא ניתן לקרוא את ${f}.`,
+    skillBig:(f,kb)=>`הקובץ ${f} גדול מ-${kb} KB. קובץ כזה יוסיף עלות גבוהה לכל הודעה.`,
+    skillBad:f=>`הקובץ ${f} ריק או שאינו קובץ טקסט. צרפו קובץ markdown (.md).`,
+    camBlocked:"הגישה למצלמה נחסמה. אפשרו למצלמה בדפדפן עבור הדף הזה ונסו שוב.",
+    camNone:"לא נמצאה מצלמה במכשיר. הדביקו את המפתח במקום.",
+    camBusy:"המצלמה בשימוש באפליקציה אחרת. סגרו אותה ונסו שוב.",
+    camSecure:"המצלמה דורשת דף מאובטח. פתחו את הדף דרך https:// או http://localhost, או הדביקו את המפתח.",
+    camNoApi:"הדפדפן לא יכול לפתוח מצלמה. הדביקו את המפתח במקום.",
+    camFail:"לא ניתן להפעיל את המצלמה. הדביקו את המפתח במקום.",
+    err401:"המפתח נדחה. ודאו שהמפתח הועתק במלואו, או סרקו אותו שוב.",
+    err402:"אין יתרה במפתח או בחשבון. בקשו ממי שנתן לכם את המפתח מפתח עם יתרה נוספת.",
+    err404:"המודל לא נמצא. בחרו אחת מאפשרויות Claude ברשימת המודלים, או בדקו את מזהה המודל.",
+    err413:"ההודעה גדולה מדי. הסירו קובץ מצורף או לחצו על Reset conversation.",
+    err429:"יותר מדי בקשות. המתינו מעט ולחצו שוב על שליחה.",
+    errNet:"אין חיבור ל-OpenRouter. בדקו את חיבור האינטרנט ולחצו שוב על שליחה.",
+    errUnknown:"אינני מזהה את השגיאה הזו. האם היא קרתה מיד כשלחצתם על שליחה, או באמצע התשובה?",
+    nothingToSave:"אין עדיין מה לשמור. נהלו קודם שיחה.",
+    chatSaved:f=>`השיחה נשמרה בקובץ ${f}.`,
+    memSaved:f=>`הזיכרון נשמר בקובץ ${f}. הוא כולל את הסיכום שלהלן ואת הקוד האחרון שלכם. אחרי Reset, השתמשו ב-Load memory כדי להעביר אותו לשיחה חדשה.`,
+    memLoaded:f=>`הזיכרון נטען: ${f}. המודל ישתמש בו מההודעה הבאה שלכם.`,
+    memBig:(f,kb)=>`הקובץ ${f} גדול מ-${kb} KB. קובץ זיכרון כזה יוסיף עלות גבוהה לכל הודעה.`,
+    memBad:f=>`הקובץ ${f} ריק או שאינו קובץ טקסט. צרפו את קובץ ה-markdown (.md) ששמרתם.`
+  }
+};
+/* ========================================================= */
+
+const $ = id => document.getElementById(id);
+const els = {key:$('key'),family:$('family'),other:$('other'),otherWrap:$('otherWrap'),models:$('models'),
+  chat:$('chat'),codePre:$('codePre'),input:$('input'),form:$('form'),send:$('send'),stop:$('stop'),reset:$('reset'),
+  copyCode:$('copyCode'),attach:$('attach'),file:$('file'),strip:$('strip')};
+
+let history = [];                 // user: {role,text,atts[]}  assistant: {role,text}. Only these are sent to the model.
+let notes = [];                   // errors and notices shown in the chat, never sent to the model: {at, raw, text}; "at" = number of messages before it
+let atts = [];                    // pending attachments in the input box
+let processing = 0;               // attachments currently being read
+let calibrated = null;            // {tokens,count}: real usage reported by the API
+// Session totals live only in memory: they survive Reset and end when the page is closed or reloaded.
+let totals = {inp:0,out:0,cost:0,estimated:false,costEstimated:false,costUnknown:false};
+let prices = {};                  // model id -> {inp,out} in US dollars per token, from the OpenRouter model list
+let lastTurn = null;
+let windows = {}, modalities = {}, latest = {};
+let busy = false, controller = null;
+let skill = null;                 // {name,text,tokens}: optional markdown skill added to the system prompt
+let memory = null;                // {name,text}: a memory file loaded into this conversation (cleared by Reset)
+let streaming = false;            // true only while a chat reply is streaming in
+let budget = null;                // the student's spend limit in US dollars, or null. The only limit this app enforces.
+let budgetNoted = false, longNoted = false;
+
+// OpenRouter has no API-level "skill" parameter, so a skill is sent as part of the system message.
+function systemPrompt(){
+  let s = SYSTEM_PROMPT;
+  if(skill) s += `\n\nThe student has loaded a skill. Follow its instructions in every reply. Where the skill says nothing, the rules above still apply.\n<skill name="${skill.name}">\n${skill.text}\n</skill>`;
+  // A memory file is just text added to the system prompt. The model has no other way to remember an earlier conversation.
+  if(memory) s += `\n\nThe student loaded a memory file saved from an earlier conversation. Treat it as background about the student's project and preferences. It may be out of date: if the student says otherwise, follow the student. Use it only where relevant and do not invent details that are not in it.\n<memory>\n${memory.text}\n</memory>`;
+  return s;
+}
+
+/* ---------- language and messages ---------- */
+const hasHebrew = s => /[֐-׿]/.test(s||'');
+let lastLang = 'en';
+const lastUserText = () => { for(let i=history.length-1;i>=0;i--) if(history[i].role==='user' && history[i].text) return history[i].text; return ''; };
+// The language of the conversation, judged from the given text, else the draft, else the last student message. Only English and Hebrew are built in.
+function curLang(sample){
+  const s = sample || els.input.value || lastUserText();
+  if(s && s.trim()) lastLang = hasHebrew(s) ? 'he' : 'en';
+  return lastLang;
+}
+function trL(lang, key, ...a){ const v=T[lang][key]; return typeof v==='function' ? v(...a) : v; }
+const tr = (key, ...a) => trL(curLang(), key, ...a);
+
+function note(text, raw, extra){
+  const last=notes[notes.length-1];
+  if(!raw && !extra && last && !last.raw && !last.kind && last.at===history.length && last.text===text) return last;   // do not repeat the same notice
+  const n={at:history.length, raw:raw||'', text:text||'', ...(extra||{})}; notes.push(n); render(); return n;
+}
+const noteT = (key, ...a) => note(tr(key, ...a));
+const infoT = (key, ...a) => note(tr(key, ...a), '', {kind:'info'});
+
+/* ---------- token estimation ---------- */
+// ~4 chars/token for ASCII, ~1.5 chars/token for non-Latin scripts (Hebrew, Arabic...). Images: w*h/750. Replaced by real counts after each reply.
+function est(s){ let a=0,o=0; for(const ch of s){ ch.charCodeAt(0)<128 ? a++ : o++; } return Math.ceil(a/4 + o/1.5); }
+const attTokens = list => (list||[]).reduce((n,a)=>n+a.tokens,0);
+const msgTokens = m => est(m.text||'') + 4 + attTokens(m.atts);
+
+function contextTokens(){
+  if (calibrated) return calibrated.tokens + history.slice(calibrated.count).reduce((n,m)=>n+msgTokens(m),0);
+  return est(systemPrompt()) + 4 + history.reduce((n,m)=>n+msgTokens(m),0);
+}
+const fmt = n => Math.round(n).toLocaleString();
+// Hue stops: 0% green, 50% yellow, 80% orange, 100% red, blended smoothly in between.
+function hueFor(p){
+  const s=[[0,130],[0.5,52],[0.8,28],[1,0]];
+  for(let i=1;i<s.length;i++){
+    if(p<=s[i][0]){ const [p0,h0]=s[i-1],[p1,h1]=s[i]; return Math.round(h0+(h1-h0)*(p-p0)/(p1-p0)); }
+  }
+  return 0;
+}
+function money(c, approx){
+  if(c===null || c===undefined) return 'cost n/a';
+  const s = c>0 && c<0.0001 ? '<$0.0001' : '$'+c.toFixed(4);
+  return (approx ? '~' : '') + s;
+}
+
+// The only spending limit this app enforces is the student's own. OpenRouter enforces the key's limits and the app reports its errors in the chat.
+function exhausted(){ return budget!==null && totals.cost >= budget - 1e-9; }
+
+function updateMeter(){
+  const spent = totals.cost;
+  const bp = budget===null ? 0 : (budget>0 ? spent/budget : 1), bpc = Math.min(1, bp);
+  const fill = $('fill');
+  fill.style.width = (bpc*100).toFixed(1) + "%";
+  fill.style.backgroundColor = `hsl(${hueFor(bpc)} 75% 42%)`;     // green -> yellow -> orange -> red
+  $('bar').setAttribute('aria-valuenow', Math.round(bpc*100));
+  $('budgetText').textContent = budget===null
+    ? `${money(spent, totals.costEstimated)}. No limit set (open Settings)`
+    : `${money(spent, totals.costEstimated)} of $${budget<1 ? budget.toFixed(4) : budget.toFixed(2)} (${Math.round(bp*100)}%)`;
+  const tl = lastTurn && lastTurn.estimated ? "~" : "";
+  $('lin').textContent = lastTurn ? tl + fmt(lastTurn.inp) : "–";
+  $('lout').textContent = lastTurn ? tl + fmt(lastTurn.out) : "–";
+  $('lcost').textContent = lastTurn ? money(lastTurn.cost, lastTurn.costEst) : "–";
+  const te = totals.estimated ? "~" : "";
+  $('tin').textContent = te + fmt(totals.inp);
+  $('tout').textContent = te + fmt(totals.out);
+  $('tcost').textContent = money(totals.cost, totals.costEstimated) + (totals.costUnknown ? '+' : '');
+  els.send.disabled = exhausted();
+  els.send.title = exhausted() ? tr('exhausted') : 'Send';
+  $('basis').textContent = "~ means estimated; exact once the model replies. Session totals continue after Reset until this page is closed.";
+}
+
+/* ---------- model selection ---------- */
+function ver(id, fam){ const s=id.replace('anthropic/claude-','').replace(fam,''); const n=s.match(/\d+(?:\.\d+)?/); return n?parseFloat(n[0]):0; }
+function resolveLatest(list){
+  for(const fam of ['haiku','sonnet','opus']){
+    const c=list.filter(m=>m.id.startsWith('anthropic/claude-') && m.id.includes(fam) && !m.id.includes(':'));
+    c.sort((a,b)=>ver(b.id,fam)-ver(a.id,fam) || (b.created||0)-(a.created||0));
+    if(c[0]) latest[fam]=c[0].id;
+  }
+}
+function currentModel(){
+  const f=els.family.value;
+  return f==='other' ? els.other.value.trim() : (latest[f] || FALLBACK_MODEL[f]);
+}
+function updateModelUI(){
+  const f=els.family.value;
+  els.otherWrap.hidden = f!=='other';
+  els.family.title = f==='other' ? '' : currentModel() + (latest[f] ? '' : ' (fallback; live list unavailable)');
+  try{ localStorage.setItem('or_family',f); localStorage.setItem('or_other',els.other.value); }catch{}
+  updateMeter();
+}
+async function loadModels(){
+  try{
+    const r=await fetch(API+'/models'); if(!r.ok) throw 0;
+    const list=(await r.json()).data;
+    list.forEach(m=>{
+      windows[m.id]=m.context_length; modalities[m.id]=m.architecture?.input_modalities||null;
+      if(m.pricing) prices[m.id]={inp:parseFloat(m.pricing.prompt)||0, out:parseFloat(m.pricing.completion)||0};
+      const o=document.createElement('option'); o.value=m.id; o.label=m.name||m.id; els.models.appendChild(o);
+    });
+    resolveLatest(list);
+  }catch{ /* optional: the fallback ids and the Other box still work */ }
+  updateModelUI();
+}
+
+/* ---------- parsing model output ---------- */
+function split(text){
+  const parts=[]; let i=0;
+  while(true){
+    const s=text.indexOf('```',i);
+    if(s<0){ parts.push({t:'text',v:text.slice(i)}); break; }
+    parts.push({t:'text',v:text.slice(i,s)});
+    const nl=text.indexOf('\n',s+3);
+    if(nl<0){ parts.push({t:'code',v:'',open:true}); break; }
+    const b=nl+1, e=text.indexOf('```',b);
+    if(e<0){ parts.push({t:'code',v:text.slice(b),open:true}); break; }
+    parts.push({t:'code',v:text.slice(b,e).replace(/\n$/,''),open:false});
+    i=e+3;
+  }
+  return parts;
+}
+// The code buffer = code from the most recent response that contains code.
+// While a reply streams, its code refreshes the buffer live. An unfinished block (stopped or cut off) is never kept.
+function latestCode(){
+  for(let i=history.length-1;i>=0;i--){
+    const m=history[i]; if(m.role!=='assistant') continue;
+    const live = streaming && i===history.length-1;
+    const blocks=split(m.text).filter(p=>p.t==='code' && (live || !p.open) && p.v.trim());
+    if(blocks.length) return blocks.map(b=>b.v).join('\n\n');
+  }
+  return '';
+}
+// True while the model is in the middle of writing a code block: the buffer is incomplete and must not be copied.
+function writingCode(){
+  const last=history[history.length-1];
+  return streaming && !!last && last.role==='assistant' && split(last.text).some(p=>p.t==='code' && p.open);
+}
+
+/* ---------- rendering ---------- */
+const RTL_RE=/[֐-ࣿיִ-﷿ﹰ-﻿]/, STRONG_RE=/[A-Za-z֐-ࣿיִ-﷿ﹰ-﻿]/;
+function dirOf(t){ const m=(t||'').match(STRONG_RE); return m && RTL_RE.test(m[0]) ? 'rtl' : 'ltr'; }
+function el(tag,cls){ const e=document.createElement(tag); if(cls) e.className=cls; return e; }
+
+function addText(parent, text, link){
+  const re=/https?:\/\/[^\s<>"']+/g; let last=0, m;
+  if(!link){ parent.append(text); return; }
+  while((m=re.exec(text))){
+    let url=m[0].replace(/[.,;:!?)\]]+$/,'');
+    parent.append(text.slice(last,m.index));
+    const a=el('a'); a.href=url; a.target='_blank'; a.rel='noopener noreferrer'; a.textContent=url; parent.appendChild(a);
+    last=m.index+url.length; re.lastIndex=last;
+  }
+  parent.append(text.slice(last));
+}
+function paragraphs(text, parent, link){
+  text.split(/\n{2,}/).map(s=>s.trim()).filter(Boolean).forEach(s=>{
+    const p=el('p'); p.dir='auto'; addText(p,s,link); parent.appendChild(p);
+  });
+}
+function renderMessage(m,i){
+  const prose = m.role==='user' ? m.text : split(m.text).filter(p=>p.t==='text').map(p=>p.v).join('\n\n');
+  const typing = m.role==='assistant' && busy && i===history.length-1 && !prose.trim();
+  if(m.role==='assistant' && !prose.trim() && !typing) return null;
+  if(m.role==='user' && !prose.trim() && !(m.atts&&m.atts.length)) return null;
+  const row=el('div','row'); row.dir=dirOf(prose);
+  const b=el('div','bubble '+m.role);
+  if(typing){ b.classList.add('typing'); for(let k=0;k<3;k++) b.appendChild(el('span')); }
+  else paragraphs(prose,b,m.role==='assistant');
+  if(m.atts&&m.atts.length){
+    const box=el('div','atts');
+    m.atts.forEach(a=>{
+      if(a.kind==='image'){ const im=el('img'); im.src=a.dataUrl; im.alt=a.name; box.appendChild(im); }
+      else { const f=el('span','file'); f.textContent=a.name; box.appendChild(f); }
+    });
+    b.appendChild(box);
+  }
+  row.appendChild(b); return row;
+}
+function renderNote(n){
+  const row=el('div','row'); row.dir=dirOf(n.text||n.raw);
+  const b=el('div','bubble '+(n.kind||'error'));
+  if(n.raw){ const p=el('p','raw'); p.dir='ltr'; p.textContent=n.raw; b.appendChild(p); }
+  if(n.text) paragraphs(n.text,b,false);
+  if(n.body){ const pre=el('pre','mem'); pre.dir='auto'; pre.textContent=n.body; b.appendChild(pre); }
+  row.appendChild(b); return row;
+}
+function renderChat(){
+  const chat=els.chat, near = chat.scrollHeight - chat.scrollTop - chat.clientHeight < 80;
+  chat.replaceChildren();
+  if(!history.length && !notes.length){ const d=el('div','empty'); d.textContent='Describe what you want to build. Code appears on the right.'; chat.appendChild(d); }
+  for(let i=0;i<=history.length;i++){
+    notes.filter(n => i===history.length ? n.at>=i : n.at===i).forEach(n=>chat.appendChild(renderNote(n)));
+    if(i<history.length){ const row=renderMessage(history[i],i); if(row) chat.appendChild(row); }
+  }
+  if(near || busy) chat.scrollTop=chat.scrollHeight;
+}
+let shownCode=null;
+function renderCode(){
+  const code=latestCode(), pre=els.codePre, wrap=$('codeWrap'), writing=writingCode();
+  // The button stays disabled while code is still being written, so an incomplete buffer cannot be copied.
+  els.copyCode.disabled = !code || busy;
+  if(!copiedFlash) els.copyCode.textContent = writing ? 'Generating code' : 'Copy code';
+  pre.classList.toggle('writing', writing);
+  if(code===shownCode) return;
+  shownCode=code;
+  if(!code){
+    pre.className='placeholder';
+    pre.textContent='No code yet. When the model writes code, it appears here and is replaced by each new version.';
+  } else {
+    pre.className=writing?'writing':''; pre.textContent=code;
+    if(busy) wrap.scrollTop=wrap.scrollHeight;
+  }
+}
+function renderStrip(){
+  els.strip.replaceChildren(); els.strip.hidden=!atts.length;
+  atts.forEach((a,i)=>{
+    const c=el('div','chipx');
+    if(a.kind==='image'){ const im=el('img'); im.src=a.dataUrl; im.alt=a.name; c.appendChild(im); }
+    const n=el('span'); n.textContent=a.name; c.appendChild(n);
+    const x=el('button'); x.type='button'; x.textContent='×'; x.title='Remove'; x.setAttribute('aria-label','Remove '+a.name);
+    x.onclick=()=>{ atts.splice(i,1); renderStrip(); updateMeter(); };
+    c.appendChild(x); els.strip.appendChild(c);
+  });
+}
+let raf=0;
+function render(){ cancelAnimationFrame(raf); raf=requestAnimationFrame(renderNow); }
+function renderNow(){ renderChat(); renderCode(); updateMeter(); }
+
+/* ---------- attachments ---------- */
+const readDataUrl = f => new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=()=>rej({t:'readFail',a:[f.name]}); r.readAsDataURL(f); });
+async function readImage(f){
+  let bmp; try{ bmp=await createImageBitmap(f); }catch{ throw {t:'imgOpen',a:[f.name||'image']}; }
+  const s=Math.min(1, MAX_IMAGE_SIDE/Math.max(bmp.width,bmp.height));
+  const w=Math.max(1,Math.round(bmp.width*s)), h=Math.max(1,Math.round(bmp.height*s));
+  const cv=document.createElement('canvas'); cv.width=w; cv.height=h;
+  const ctx=cv.getContext('2d'); ctx.fillStyle='#fff'; ctx.fillRect(0,0,w,h); ctx.drawImage(bmp,0,0,w,h);
+  let url=cv.toDataURL('image/png'); if(url.length>1500000) url=cv.toDataURL('image/jpeg',0.85);
+  return {kind:'image', name:f.name||'screenshot.png', dataUrl:url, tokens:Math.ceil(w*h/750)};
+}
+async function readAttachment(f){
+  if(f.type.startsWith('image/')) return readImage(f);
+  if(f.type==='application/pdf' || /\.pdf$/i.test(f.name)){
+    if(f.size>MAX_PDF_BYTES) throw {t:'attPdf',a:[f.name,MAX_PDF_BYTES/1048576]};
+    return {kind:'pdf', name:f.name, dataUrl:await readDataUrl(f), tokens:Math.ceil(f.size/10)};
+  }
+  if(f.size>MAX_TEXT_FILE_BYTES) throw {t:'attText',a:[f.name,MAX_TEXT_FILE_BYTES/1024]};
+  const t=await f.text();
+  if(t.includes('\u0000')) throw {t:'attType',a:[f.name]};
+  return {kind:'text', name:f.name, text:t, tokens:est(t)};
+}
+async function addFiles(files){
+  processing++;
+  try{
+    for(const f of files){
+      if(atts.length>=MAX_ATTACHMENTS){ noteT('attLimit',MAX_ATTACHMENTS); break; }
+      try{ atts.push(await readAttachment(f)); }catch(e){ e && e.t ? noteT(e.t,...(e.a||[])) : noteT('readFail',f.name); }
+    }
+  } finally { processing--; renderStrip(); updateMeter(); }
+}
+els.attach.onclick=()=>els.file.click();
+els.file.onchange=()=>{ addFiles([...els.file.files]); els.file.value=''; };
+els.input.addEventListener('paste',e=>{
+  const files=[...(e.clipboardData?.files||[])];
+  if(files.length && !e.clipboardData.getData('text/plain')){ e.preventDefault(); addFiles(files); }
+});
+els.form.addEventListener('dragover',e=>e.preventDefault());
+els.form.addEventListener('drop',e=>{ e.preventDefault(); if(e.dataTransfer?.files?.length) addFiles([...e.dataTransfer.files]); });
+
+/* ---------- clipboard ---------- */
+let copiedFlash=false;
+els.copyCode.onclick=async()=>{
+  if(busy) return;                                   // never copy while the buffer may be incomplete
+  const code=latestCode(); if(!code) return;
+  try{ await navigator.clipboard.writeText(code); }
+  catch{ const ta=document.createElement('textarea'); ta.value=code; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); }
+  copiedFlash=true; els.copyCode.textContent='Copied';
+  setTimeout(()=>{ copiedFlash=false; renderCode(); },1500);
+};
+
+/* ---------- OpenRouter requests and errors ---------- */
+const apiErr = (status, detail) => Object.assign(new Error(detail||'request failed'),{api:true,status,detail:detail||''});
+const headers = key => ({'Authorization':'Bearer '+key,'Content-Type':'application/json','X-Title':'Vibe Coding Chat'});
+
+// Adds usage from a side request (an error explanation) to the session totals. It is not part of the conversation.
+function addSpend(usage, model){
+  if(!usage) return;
+  const inp=usage.prompt_tokens||0, out=usage.completion_tokens||0;
+  let cost=typeof usage.cost==='number' ? usage.cost : null, c=false;
+  if(cost===null){ const p=prices[model]; if(p) cost=inp*p.inp+out*p.out; c=true; }
+  totals.inp+=inp; totals.out+=out;
+  if(cost===null) totals.costUnknown=true; else { totals.cost+=cost; if(c) totals.costEstimated=true; }
+}
+// Errors where the same key or connection would fail again get fixed, built-in advice. Anything else is explained by the model itself,
+// in the student's language, using only the error text; if that is not possible the app asks the student a question instead.
+const FIXED_ADVICE = {401:'err401',402:'err402',404:'err404',413:'err413',429:'err429'};
+async function reportError(e, sample){
+  const lang=curLang(sample);
+  const detail=(e.detail||'').replace(/\s+/g,' ').trim();
+  const raw = e.api ? ['OpenRouter error', e.status].filter(Boolean).join(' ') + (detail ? ': '+(detail.length>160 ? detail.slice(0,160)+'…' : detail) : '')
+                    : 'Network error: could not reach openrouter.ai';
+  const n=note('', raw);
+  const fixed = e.api ? FIXED_ADVICE[e.status] : 'errNet';
+  if(fixed){ n.text=trL(lang,fixed); render(); return; }
+  const advice = await adviseWithModel(e, sample);
+  n.text = advice || trL(lang,'errUnknown'); render();
+}
+async function adviseWithModel(e, sample){
+  const key=getKey(), model=currentModel();
+  if(!key || !model || exhausted()) return null;
+  try{
+    const r=await fetch(API+'/chat/completions',{method:'POST',headers:headers(key),body:JSON.stringify({
+      model, stream:false, max_tokens:200, usage:{include:true},
+      messages:[{role:'system',content:ADVICE_PROMPT},
+                {role:'user',content:`OpenRouter error ${e.status??''}: ${e.detail||'(no message)'}\n\nThe student's last message (use it only to choose the language to answer in):\n${(sample||lastUserText()).slice(0,300)}`}]
+    })});
+    if(!r.ok) return null;
+    const j=await r.json();
+    addSpend(j.usage, model); updateMeter();
+    return j.choices?.[0]?.message?.content?.trim() || null;
+  }catch{ return null; }
+}
+function toApi(m){
+  if(m.role==='assistant') return {role:'assistant',content:m.text};
+  const list=m.atts||[];
+  if(!list.length) return {role:'user',content:m.text};
+  let text=m.text;
+  list.filter(a=>a.kind==='text').forEach(a=>{ text+=`\n\n----- ${a.name} -----\n${a.text}\n----- end of ${a.name} -----`; });
+  const parts=[{type:'text',text:text.trim()||'(see attachments)'}];
+  list.forEach(a=>{
+    if(a.kind==='image') parts.push({type:'image_url',image_url:{url:a.dataUrl}});
+    else if(a.kind==='pdf') parts.push({type:'file',file:{filename:a.name,file_data:a.dataUrl}});
+  });
+  return {role:'user',content:parts};
+}
+function setBusy(b){
+  busy=b; els.send.hidden=b; els.stop.hidden=!b;
+  els.input.disabled=b; els.reset.disabled=b; els.attach.disabled=b; els.family.disabled=b; els.other.disabled=b;
+  for(const id of ['saveChat','saveMem','loadMem']) $(id).disabled=b;
+}
+
+async function sendMessage(){
+  if(busy) return;
+  const text=els.input.value.trim(), sendAtts=atts.slice();
+  if(!text && !sendAtts.length) return;
+  curLang(text);
+  if(processing){ noteT('reading'); return; }
+  const key=getKey(), model=currentModel();
+  if(exhausted()){ budgetNoted=true; noteT('exhausted'); return; }   // the student's own spend limit: no request is made, nothing is cleared
+  if(!key){ noteT('needKey'); return; }
+  if(!model){ noteT('needModel'); return; }
+  if(sendAtts.some(a=>a.kind==='image') && modalities[model] && !modalities[model].includes('image')){ noteT('noImages'); return; }
+  try{ sessionStorage.setItem('or_key',key); }catch{}
+
+  history.push({role:'user',text,atts:sendAtts});
+  const inEst = est(systemPrompt())+4+history.reduce((n,m)=>n+msgTokens(m),0);
+  const apiMessages=[{role:'system',content:systemPrompt()},...history.map(toApi)];
+  history.push({role:'assistant',text:''});
+  els.input.value=''; atts=[]; renderStrip(); setBusy(true); streaming=true; renderNow();
+
+  controller=new AbortController();
+  let usage=null, gotAny=false, truncated=false, failure=null;
+  try{
+    const r=await fetch(API+'/chat/completions',{
+      method:'POST', signal:controller.signal, headers:headers(key),
+      body:JSON.stringify({model, messages:apiMessages, stream:true, usage:{include:true}})
+    });
+    if(!r.ok){
+      let m=''; try{ m=(await r.json()).error?.message||''; }catch{}
+      throw apiErr(r.status,m);
+    }
+    const reader=r.body.getReader(), dec=new TextDecoder(); let buf='';
+    while(true){
+      const {done,value}=await reader.read(); if(done) break;
+      buf+=dec.decode(value,{stream:true});
+      let nl;
+      while((nl=buf.indexOf('\n'))>=0){
+        const line=buf.slice(0,nl).trim(); buf=buf.slice(nl+1);
+        if(!line.startsWith('data:')) continue;           // skips ": OPENROUTER PROCESSING" keep-alives
+        const data=line.slice(5).trim(); if(data==='[DONE]') continue;
+        let j; try{ j=JSON.parse(data); }catch{ continue; }
+        if(j.error) throw apiErr(j.error.code, j.error.message);
+        const c=j.choices?.[0];
+        if(c?.delta?.content){ gotAny=true; history[history.length-1].text+=c.delta.content; render(); }
+        if(c?.finish_reason==='length') truncated=true;
+        if(j.usage) usage=j.usage;
+      }
+    }
+    finishTurn(usage, inEst, model);
+    if(truncated) noteT('truncated');
+  }catch(e){
+    if(e.name!=='AbortError') failure = e.api ? e : {net:true};
+    if(gotAny) finishTurn(null, inEst, model);
+    else { history.pop(); history.pop(); els.input.value=text; atts=sendAtts; renderStrip(); }   // restore so nothing is lost
+  }finally{
+    setBusy(false); streaming=false; controller=null; renderNow(); els.input.focus();
+  }
+  afterTurnNotes();
+  if(failure) await reportError(failure, text);
+}
+// Called once per turn. Tokens and cost come from OpenRouter's usage report (usage.cost is the amount actually charged).
+// If the report is missing (e.g. Stop was pressed), tokens are estimated and cost = tokens x the model's listed price.
+function finishTurn(usage, inEst, model){
+  let inp, out, cost=null, estimated;
+  if(usage && usage.prompt_tokens!=null){
+    inp=usage.prompt_tokens; out=usage.completion_tokens||0; estimated=false;
+    calibrated={tokens:inp+out, count:history.length};
+    if(typeof usage.cost==='number') cost=usage.cost;
+  } else {
+    inp=inEst; out=msgTokens(history[history.length-1]); estimated=true;
+  }
+  let costEst=false;
+  if(cost===null){ const p=prices[model]; if(p) cost=inp*p.inp+out*p.out; costEst=true; }
+  lastTurn={inp,out,cost,estimated,costEst};
+  totals.inp+=inp; totals.out+=out;
+  if(estimated) totals.estimated=true;
+  if(cost===null) totals.costUnknown=true; else { totals.cost+=cost; if(costEst) totals.costEstimated=true; }
+}
+function afterTurnNotes(){
+  if(exhausted()){ if(!budgetNoted){ budgetNoted=true; noteT('exhausted'); } } else budgetNoted=false;
+  const win=windows[currentModel()]||FALLBACK_WINDOW;
+  if(!longNoted && contextTokens()/win > 0.8){ longNoted=true; noteT('tooLong'); }
+}
+
+/* ---------- API key: scan a QR code, test the key ---------- */
+function setKey(v){ els.key.value=v; try{ sessionStorage.setItem('or_key',v); }catch{} }
+function getKey(){ return els.key.value.trim(); }
+els.key.addEventListener('change',()=>{ try{ sessionStorage.setItem('or_key',getKey()); }catch{} });
+
+// GET /api/v1/key only checks the key: it uses no tokens and costs nothing. A failure is reported in the chat.
+async function testKey(){
+  const key=getKey(), btn=$('testKey');
+  if(!key){ noteT('needKey'); return; }
+  btn.disabled=true; btn.textContent='Testing…'; btn.classList.remove('ok');
+  let ok=false, failure=null;
+  try{
+    const r=await fetch(API+'/key',{headers:{Authorization:'Bearer '+key}});
+    if(r.ok){
+      ok=true;
+      let d={}; try{ d=(await r.json()).data||{}; }catch{}
+      btn.title='Key works' + (d.label ? ` (label: ${d.label})` : '') + (typeof d.limit_remaining==='number' ? `. $${d.limit_remaining.toFixed(2)} of its limit remaining` : '');
+    } else {
+      let m=''; try{ m=(await r.json()).error?.message||''; }catch{}
+      failure=apiErr(r.status,m);
+    }
+  }catch{ failure={net:true}; }
+  btn.disabled=false; btn.textContent=ok?'Key OK ✓':'Test';
+  if(ok){ btn.classList.add('ok'); setTimeout(()=>{ btn.textContent='Test'; btn.classList.remove('ok'); },3000); }
+  if(failure) await reportError(failure,'');
+}
+$('testKey').onclick=testKey;
+
+const scanDlg=$('scanDlg'), scanVideo=$('scanVideo'), scanMsg=$('scanMsg');
+const scanCv=document.createElement('canvas'), scanCx=scanCv.getContext('2d',{willReadFrequently:true});
+let scanStream=null, scanTimer=0;
+function stopScan(){
+  clearTimeout(scanTimer); scanTimer=0;
+  if(scanStream){ scanStream.getTracks().forEach(t=>t.stop()); scanStream=null; }
+  scanVideo.srcObject=null;
+}
+function scanProblem(key){ stopScan(); if(scanDlg.open) scanDlg.close(); noteT(key); }   // camera problems are reported in the chat
+async function startScan(){
+  scanMsg.textContent='Starting camera…';
+  scanDlg.showModal();
+  if(!navigator.mediaDevices?.getUserMedia){ scanProblem(window.isSecureContext ? 'camNoApi' : 'camSecure'); return; }
+  try{
+    // Prefer the front camera; if the device has only one camera, the browser uses it.
+    scanStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'user'},width:{ideal:1280}},audio:false});
+  }catch(e){
+    scanProblem(e.name==='NotAllowedError'||e.name==='SecurityError' ? 'camBlocked'
+      : e.name==='NotFoundError'||e.name==='OverconstrainedError' ? 'camNone'
+      : e.name==='NotReadableError' ? 'camBusy' : 'camFail');
+    return;
+  }
+  if(!scanDlg.open){ stopScan(); return; }          // closed while the permission prompt was showing
+  scanVideo.srcObject=scanStream; await scanVideo.play().catch(()=>{});
+  scanMsg.textContent='Hold the QR code in front of the camera.';
+  tickScan();
+}
+function tickScan(){
+  if(!scanStream) return;
+  const v=scanVideo;
+  if(v.readyState>=2 && v.videoWidth){
+    const s=Math.min(1,800/v.videoWidth);
+    scanCv.width=Math.round(v.videoWidth*s); scanCv.height=Math.round(v.videoHeight*s);
+    scanCx.drawImage(v,0,0,scanCv.width,scanCv.height);
+    const img=scanCx.getImageData(0,0,scanCv.width,scanCv.height);
+    const code=jsQR(img.data,img.width,img.height,{inversionAttempts:'attemptBoth'});
+    if(code && code.data.trim()){ stopScan(); scanDlg.close(); setKey(code.data.trim()); return; }   // replaces any existing key
+  }
+  scanTimer=setTimeout(tickScan,120);
+}
+$('scan').onclick=startScan;
+$('scanCancel').onclick=()=>scanDlg.close();
+scanDlg.addEventListener('close',stopScan);
+
+/* ---------- settings: spend limit and skill file ---------- */
+function parseSkill(fileName, text){
+  let name = fileName.replace(/\.(md|markdown|txt)$/i,'');
+  const fm = text.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+  if(fm){ const n=fm[1].match(/^name:\s*(.+)$/m); if(n) name=n[1].trim().replace(/^["']|["']$/g,''); }
+  name = name.replace(/[^\w.\- ]/g,'').slice(0,60) || 'skill';
+  return {name, text:text.trim(), tokens:est(text)+30};
+}
+function setSkill(next){
+  const before = est(systemPrompt());
+  skill = next;
+  if(calibrated) calibrated.tokens = Math.max(0, calibrated.tokens + est(systemPrompt()) - before);   // keep the context count consistent
+  try{ next ? localStorage.setItem('or_skill',JSON.stringify(next)) : localStorage.removeItem('or_skill'); }catch{}
+  renderSkillInfo(); updateMeter();
+}
+function renderSkillInfo(){
+  $('skillInfo').textContent = skill ? `${skill.name}  (~${fmt(skill.tokens)} tokens)` : 'No skill loaded.';
+  $('skillClear').hidden = !skill;
+  $('skillPick').textContent = skill ? 'Replace skill file…' : 'Attach skill file…';
+}
+$('settings').onclick=()=>$('dlg').showModal();
+$('skillPick').onclick=()=>$('skillFile').click();
+$('skillClear').onclick=()=>setSkill(null);
+$('skillFile').onchange=async e=>{
+  const f=e.target.files[0]; e.target.value=''; if(!f) return;
+  if(f.size>MAX_SKILL_BYTES){ $('dlg').close(); noteT('skillBig',f.name,MAX_SKILL_BYTES/1024); return; }   // problems are reported in the chat
+  const t=await f.text();
+  if(t.includes('\u0000') || !t.trim()){ $('dlg').close(); noteT('skillBad',f.name); return; }
+  setSkill(parseSkill(f.name,t));
+};
+function loadSavedSkill(){
+  try{ const s=JSON.parse(localStorage.getItem('or_skill')||'null'); if(s&&s.text) skill=s; }catch{}
+  renderSkillInfo();
+}
+function loadBudget(){
+  try{ const b=parseFloat(localStorage.getItem('or_budget')); if(b>0){ budget=b; $('budget').value=b; } }catch{}
+}
+$('budget').addEventListener('input',e=>{
+  const b=parseFloat(e.target.value);
+  budget = b>0 ? b : null;
+  try{ budget ? localStorage.setItem('or_budget',String(budget)) : localStorage.removeItem('or_budget'); }catch{}
+  if(!exhausted()) budgetNoted=false;       // raising the limit re-arms the notice and unblocks sending; the chat is untouched
+  renderNow();
+});
+
+/* ---------- save conversation, save and load memory ---------- */
+const stamp = () => new Date().toISOString().slice(0,16).replace(/[-:]/g,'').replace('T','-');
+function download(name, text){
+  const url=URL.createObjectURL(new Blob([text],{type:'text/markdown;charset=utf-8'}));
+  const a=document.createElement('a'); a.href=url; a.download=name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),2000);
+}
+const fence = code => { const f='`'.repeat(Math.max(3,...(code.match(/`+/g)||[]).map(x=>x.length+1))); return f+'\n'+code+'\n'+f; };
+function transcript(){
+  return history.filter(m=>m.text||(m.atts&&m.atts.length)).map(m=>{
+    const who = m.role==='user' ? 'Student' : 'Assistant';
+    const files = (m.atts||[]).map(a=>a.name);
+    return `### ${who}\n\n${m.text}${files.length ? `\n\n(attached: ${files.join(', ')})` : ''}`;
+  }).join('\n\n');
+}
+// Save chat: the whole conversation as a readable markdown file. Images and PDFs are listed by name only.
+$('saveChat').onclick=()=>{
+  if(!history.length){ noteT('nothingToSave'); return; }
+  const f=`conversation-${stamp()}.md`;
+  download(f, `# Conversation\n\nSaved: ${new Date().toISOString()}\nModel: ${currentModel()||'(none)'}\n\n${transcript()}\n`);
+  infoT('chatSaved', f);
+};
+// Save memory: the model summarizes the conversation (a normal paid request), the app appends the latest code verbatim.
+$('saveMem').onclick=async()=>{
+  if(busy) return;
+  if(!history.some(m=>m.role==='assistant' && m.text)){ noteT('nothingToSave'); return; }
+  const key=getKey(), model=currentModel(), sample=lastUserText();
+  if(exhausted()){ budgetNoted=true; noteT('exhausted'); return; }
+  if(!key){ noteT('needKey'); return; }
+  if(!model){ noteT('needModel'); return; }
+  setBusy(true);
+  try{
+    const prior = memory ? `Existing memory to update:\n<memory>\n${memory.text}\n</memory>\n\n` : '';
+    const r=await fetch(API+'/chat/completions',{method:'POST',headers:headers(key),body:JSON.stringify({
+      model, stream:false, max_tokens:700, usage:{include:true},
+      messages:[{role:'system',content:MEMORY_PROMPT},{role:'user',content:`${prior}Conversation:\n${transcript()}`}]
+    })});
+    if(!r.ok){ let d=''; try{ const j=await r.json(); d=j.error?.message||''; }catch{} throw apiErr(r.status,d); }
+    const j=await r.json();
+    addSpend(j.usage, model);
+    const summary=(j.choices?.[0]?.message?.content||'').trim();
+    if(!summary) throw apiErr(0,'empty reply');
+    const code=latestCode();
+    const f=`memory-${stamp()}.md`;
+    const file=`---\nname: memory-${stamp()}\nsaved: ${new Date().toISOString()}\nmodel: ${model}\n---\n# Memory from an earlier conversation\n\n${summary}\n`
+      + (code ? `\n## Latest code\n\n${fence(code)}\n` : '');
+    download(f,file);
+    note(tr('memSaved',f), '', {kind:'info', body:summary});
+  }catch(e){
+    await reportError(e && e.api ? e : {network:true}, sample);
+  }finally{ setBusy(false); updateMeter(); renderNow(); }
+};
+function renderMemChip(){
+  $('memChip').hidden=!memory;
+  if(memory) $('memName').textContent=memory.name;
+}
+function setMemory(next){
+  const before=est(systemPrompt());
+  memory=next;
+  if(calibrated) calibrated.tokens=Math.max(0,calibrated.tokens+est(systemPrompt())-before);
+  renderMemChip(); updateMeter();
+}
+$('loadMem').onclick=()=>$('memFile').click();
+$('memClear').onclick=()=>setMemory(null);
+$('memFile').onchange=async e=>{
+  const f=e.target.files[0]; e.target.value=''; if(!f) return;
+  if(f.size>MAX_SKILL_BYTES){ noteT('memBig',f.name,MAX_SKILL_BYTES/1024); return; }
+  const t=await f.text();
+  if(t.includes('\u0000') || !t.trim()){ noteT('memBad',f.name); return; }
+  setMemory({name:parseSkill(f.name,t).name, text:t.trim()});
+  infoT('memLoaded', f.name);
+};
+
+/* ---------- wiring ---------- */
+els.form.addEventListener('submit',e=>{e.preventDefault();sendMessage();});
+els.input.addEventListener('keydown',e=>{ if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();sendMessage();} });
+els.input.addEventListener('input',updateMeter);
+els.family.addEventListener('change',updateModelUI);
+els.other.addEventListener('input',updateModelUI);
+els.stop.onclick=()=>controller&&controller.abort();
+els.reset.onclick=()=>{
+  if((history.length||atts.length) && !confirm('Start over? The conversation and the code window will be cleared.')) return;
+  history=[]; notes=[]; atts=[]; memory=null; renderMemChip(); calibrated=null; lastTurn=null; shownCode=null; budgetNoted=false; longNoted=false;   // session totals are deliberately kept
+  renderStrip(); renderNow(); els.input.focus();
+};
+try{
+  els.key.value=sessionStorage.getItem('or_key')||'';
+  els.family.value=localStorage.getItem('or_family')||'sonnet';
+  els.other.value=localStorage.getItem('or_other')||'';
+}catch{}
+if(!els.family.value) els.family.value='sonnet';
+loadSavedSkill(); loadBudget(); updateModelUI(); loadModels(); renderNow();
+</script>
+<!--JSQR-->
+</body>
+</html>
