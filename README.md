@@ -16,7 +16,10 @@ Streaming, attachments (PDF via OpenRouter file input), key test, QR scan, file 
 `cost-board.html` shows, in large type for a projector, how much money one OpenRouter key has left and how much the class has spent, updating every few seconds while students use the key.
 
 1. On openrouter.ai, create a **management key** at Settings → Management Keys (openrouter.ai/settings/management-keys). A regular API key will not work.
-2. Open `cost-board.html` in Chrome or Edge, paste the management key, click **Show keys**, then click the key the class is using. Keys from every workspace in the account are listed, grouped by workspace.
+2. Open `cost-board.html` in Chrome or Edge, paste the management key, click **Show keys**. Keys from every workspace in the account are listed, grouped by workspace. Then either:
+   - click one key to show only that key, or
+   - under **Cycle through every key in a workspace**, pick the workspace and how long to show each key (1–60 seconds), then click **Start cycling**. Each enabled key is shown in turn with its name in large type, so each student can find their own key. **Space** pauses on the current key; **←/→** step between keys.
+   - **Entire Class** adds up every enabled key in that workspace. Tick "Include Entire Class" to show it first in the cycle, or click **Show Entire Class only** to show just the class total. It shows money left only if every key has a spending limit; otherwise it shows the total spent.
 3. Press **F** for full screen. **T** switches light/dark (use light in bright rooms), **L** switches between English with dollars and Hebrew with shekels without resetting the class count (also a button on the board), **Esc** goes back to the key list.
 
 **Hebrew and shekels:** at the top of the setup screen, set **Language** to עברית and/or **Currency** to Israeli new shekels. The two are independent. Hebrew switches the student-facing text and turns the layout right-to-left; the instructor notes stay in English. OpenRouter bills in dollars, so shekel amounts use an exchange rate: the page fetches the European Central Bank rate (via frankfurter.dev, no key needed) when you pick shekels, and you can type your own instead. The board shows which rate it is using at the bottom. If the rate cannot be fetched and none is typed, the board will not start in shekels.

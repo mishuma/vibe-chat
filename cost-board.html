@@ -52,17 +52,24 @@
   /* Board (projector view) */
   #board{min-height:100%;display:flex;flex-direction:column;padding:2.5vh 3vw}
   .top{display:flex;justify-content:space-between;align-items:center;gap:16px;font-size:clamp(16px,2vw,32px);color:var(--muted)}
-  #keyName{font-weight:700;color:var(--fg);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #wsLine{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  /* Key name is large so the student using that key can read it from the back of the room. */
+  /* The largest text scales with height as well as width so the board fits 720p projectors without scrolling. */
+  #keyName{font-size:clamp(32px,min(6vw,9vh),120px);font-weight:800;line-height:1.1;color:var(--fg);max-width:94vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .cycleBox{margin-top:16px;padding:12px 14px;border:1px dashed var(--line);border-radius:10px}
+  .cycleTitle{font-weight:600}
+  .cycleGrid{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}
+  .cycleGrid label{margin-top:8px!important;font-weight:400!important}
   #status{display:flex;align-items:center;gap:.4em;white-space:nowrap}
   #status::before{content:"";width:.6em;height:.6em;border-radius:50%;background:var(--good)}
   #status.stale::before{background:var(--bad)}
   .hero{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center}
   #heroLabel{font-size:clamp(20px,3.2vw,52px);color:var(--muted);font-weight:600}
-  #heroValue{font-size:clamp(64px,13vw,240px);font-weight:800;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.02em;margin:.08em 0;unicode-bidi:isolate}
+  #heroValue{font-size:clamp(48px,min(11vw,17vh),210px);font-weight:800;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.02em;margin:.08em 0;unicode-bidi:isolate}
   #heroPlain{font-size:clamp(18px,2.4vw,40px);color:var(--muted);min-height:1.4em}
   #barWrap{width:min(80vw,1400px);height:clamp(14px,2.2vh,30px);background:var(--barbg);border-radius:999px;overflow:hidden;margin-top:2vh}
   #bar{height:100%;width:100%;background:var(--bar);transition:width .8s ease}
-  #flash{font-size:clamp(28px,5vw,90px);font-weight:800;color:var(--spend);height:1.2em;opacity:0;font-variant-numeric:tabular-nums;unicode-bidi:isolate}
+  #flash{font-size:clamp(24px,min(5vw,7vh),90px);font-weight:800;color:var(--spend);height:1.2em;opacity:0;font-variant-numeric:tabular-nums;unicode-bidi:isolate}
   #flash.show{animation:pop 2.4s ease-out}
   @keyframes pop{0%{opacity:0;transform:translateY(.3em)}10%{opacity:1;transform:none}75%{opacity:1}100%{opacity:0}}
   .tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:2vw;margin-top:2vh}
@@ -74,7 +81,7 @@
   #rateNote{font-size:clamp(13px,1.3vw,22px);color:var(--muted)}
   .controls{display:flex;gap:8px;margin-inline-start:auto;opacity:.35;transition:opacity .2s}
   .controls:hover,.controls:focus-within{opacity:1}
-  @media (max-width:700px){ .tiles,.settings{grid-template-columns:1fr} }
+  @media (max-width:700px){ .tiles,.settings,.cycleGrid{grid-template-columns:1fr} }
   @media (prefers-reduced-motion:reduce){ #flash.show{animation:none;opacity:1} #bar{transition:none} }
 </style>
 </head>
@@ -118,6 +125,33 @@
   <div id="pick" hidden>
     <label data-t="pickLabel"></label>
     <ul id="keyList"></ul>
+    <div class="cycleBox">
+      <div class="cycleTitle" data-t="cycleLabel"></div>
+      <div class="cycleGrid">
+        <div id="cycleWsWrap">
+          <label for="cycleWsSel" data-t="cycleWsLabel"></label>
+          <select id="cycleWsSel"></select>
+        </div>
+        <div>
+          <label for="dwellSel" data-t="dwellLabel"></label>
+          <select id="dwellSel">
+            <option value="1"></option>
+            <option value="2"></option>
+            <option value="3"></option>
+            <option value="5"></option>
+            <option value="10" selected></option>
+            <option value="15"></option>
+            <option value="30"></option>
+            <option value="60"></option>
+          </select>
+        </div>
+      </div>
+      <label class="check"><input id="includeAll" type="checkbox" checked> <span data-t="includeAll"></span></label>
+      <div class="row">
+        <button id="cycleBtn" class="primary" data-t="cycleBtn"></button>
+        <button id="allBtn" data-t="allOnlyBtn"></button>
+      </div>
+    </div>
     <label for="pollSel" data-t="pollLabel"></label>
     <select id="pollSel">
       <option value="3"></option>
@@ -132,16 +166,18 @@
     <summary>For instructors: how this works</summary>
     <p>A management key (create one at openrouter.ai/settings/management-keys) can list, create and delete every API key in the workspace, so it is never shown on screen and is kept only in this browser tab unless you tick "Remember". This page reads <code>GET https://openrouter.ai/api/v1/keys/{hash}</code> on a timer and shows the key's <code>usage</code> (dollars spent, all time) and <code>limit_remaining</code> (dollars left, if the key has a credit limit). It never changes a key. Keys from every workspace in the account are listed (via <code>GET /api/v1/workspaces</code>), grouped by workspace when there is more than one. "This class" counts from the moment the board opened. Each jump in spending is usually one AI request, but if several requests land between checks they show as one jump. OpenRouter can take a few seconds to record a request's cost.</p>
     <p>OpenRouter bills in US dollars. In shekels, the board converts with the rate shown at the bottom of the screen: the European Central Bank rate from frankfurter.dev, fetched when you choose shekels or click "Get today's rate", or a rate you type in yourself. The Hebrew interface turns the layout right-to-left; these notes stay in English.</p>
-    <p>Keyboard on the board: <b>F</b> full screen, <b>T</b> light/dark, <b>L</b> switches between English with dollars and Hebrew with shekels (the class count keeps running), <b>Esc</b> or <b>K</b> back to key list. The keys work with a Hebrew keyboard layout too.</p>
+    <p>Two ways to show keys: click one key to show only that key, or use "Cycle through every key in a workspace" to show each enabled key in turn for the chosen number of seconds (1 to 60). "Entire Class" adds up every enabled key in the workspace: it can be part of the cycle (shown first) or shown on its own with "Show Entire Class only". It shows money left only when every key has a spending limit; otherwise it shows the total spent. While cycling, one request per check reads the whole workspace, so every key's "this class" total stays correct even while it is off screen.</p>
+    <p>Keyboard on the board: <b>F</b> full screen, <b>Space</b> pause/resume cycling, <b>←</b>/<b>→</b> previous/next key while cycling, <b>T</b> light/dark, <b>L</b> switches between English with dollars and Hebrew with shekels (the class count keeps running), <b>Esc</b> or <b>K</b> back to key list. The keys work with a Hebrew keyboard layout too.</p>
   </details>
 </section>
 
 <section id="board" hidden>
   <div class="top">
-    <div id="keyName"></div>
+    <div id="wsLine"></div>
     <div id="status"></div>
   </div>
   <div class="hero">
+    <div id="keyName"></div>
     <div id="heroLabel"></div>
     <div id="heroValue"></div>
     <div id="heroPlain"></div>
@@ -156,6 +192,7 @@
   <div class="footer">
     <div id="rateNote"></div>
     <div class="controls">
+      <button id="pauseBtn" title="Space"></button>
       <button id="langBtn" title="L" data-t="langBtn"></button>
       <button id="themeBtn" title="T" data-t="themeBtn"></button>
       <button id="fsBtn" title="F" data-t="fsBtn"></button>
@@ -171,8 +208,29 @@ const RATE_URL = "https://api.frankfurter.dev/v1/latest?base=USD&symbols=ILS";
 const PAGE_SIZE = 100, MAX_PAGES = 20, RATE_MIN_SECONDS = 60, MAX_ILS_PER_USD = 100;
 const $ = id => document.getElementById(id);
 
-let mgmtKey = '', pollTimer = null, pollSeconds = 5, lastKeys = [], multiWs = false;
-let state = null; // {hash,name,wsId,wsName,viaList,startUsage,startTime,lastUsage,lastChange,lastChangeTime,okTime,lastKey}
+let mgmtKey = '', pollTimer = null, cycleTimer = null, pollSeconds = 5, lastKeys = [], multiWs = false;
+// Board state while the board is showing:
+//   {mode:'single'|'cycle', wsId, wsName, hashes, idx, track, startTime, okTime, viaList, paused, dwell}
+// track[hash] = {name, startUsage, lastUsage, lastChange, lastChangeTime, lastKey}
+let state = null;
+// Pseudo-key in state.hashes for the "Entire Class" view: every tracked key added together.
+const ALL = '__all__';
+const cur = () => { const h = state.hashes[state.idx]; return h === ALL ? classTracker() : state.track[h]; };
+
+// Builds a tracker-shaped view of the whole workspace. "Money left" is only meaningful
+// when every key has a limit, so otherwise the limit fields are null and the board shows spend.
+function classTracker(){
+  const trs = Object.values(state.track);
+  const sum = f => trs.reduce((a, tr) => a + (f(tr) || 0), 0);
+  const latest = trs.filter(tr => tr.lastChangeTime != null).sort((a, b) => b.lastChangeTime - a.lastChangeTime)[0];
+  const allLimited = trs.every(tr => tr.lastKey.limit != null && tr.lastKey.limit_remaining != null);
+  const usage = sum(tr => tr.lastUsage);
+  return {isAll:true, name:t('entireClass'), startUsage:sum(tr => tr.startUsage), lastUsage:usage,
+          lastChange: latest ? latest.lastChange : null, lastChangeTime: latest ? latest.lastChangeTime : null,
+          lastChangeBy: latest ? (latest.name || t('unnamed')) : '',
+          lastKey:{usage, limit: allLimited ? sum(tr => tr.lastKey.limit) : null,
+                   limit_remaining: allLimited ? sum(tr => tr.lastKey.limit_remaining) : null}};
+}
 let lang = 'en', currency = 'USD', ilsPerUsd = null, rateSrc = ''; // rateSrc: 'manual' or the ECB date
 
 // ---- UI strings. Plain strings or functions taking a vars object. ----
@@ -197,9 +255,21 @@ const STR = {
     mgmtLabel: '1. Paste the workspace management key',
     remember: 'Remember the management key on this computer (leave unticked on shared or classroom computers)',
     loadBtn: 'Show keys',
-    pickLabel: '2. Click the key the class will use',
+    pickLabel: '2. Click one key to show it, or cycle through a whole workspace below',
+    cycleLabel: 'Cycle through every key in a workspace',
+    cycleWsLabel: 'Workspace', dwellLabel: 'Show each key for',
+    cycleBtn: 'Start cycling',
+    entireClass: 'Entire Class',
+    includeAll: 'Include “Entire Class” (all keys added together) in the cycle',
+    allOnlyBtn: 'Show Entire Class only',
+    heroLeftAll: 'Money left for the entire class', heroSpentAll: 'Money the entire class has spent',
+    noLimitAll: ' · not every key has a spending limit',
+    atBy: v => v.plain + ' at ' + v.time + ' · ' + v.name,
+    noCycleKeys: 'This workspace has no enabled keys to cycle through.',
+    position: v => 'key ' + v.i + ' of ' + v.n,
+    paused: 'paused', pause: 'Pause', resume: 'Resume',
     pollLabel: 'Check for new spending every',
-    seconds: v => v.n + ' seconds',
+    seconds: v => Number(v.n) === 1 ? '1 second' : v.n + ' seconds',
     needKey: 'Paste the management key first.',
     loading: 'Loading keys…',
     noKeys: 'No API keys found in any workspace of this account. Create one on openrouter.ai, then click Show keys again.',
@@ -250,9 +320,21 @@ const STR = {
     mgmtLabel: '1. הדביקו את מפתח הניהול (management key) של סביבת העבודה',
     remember: 'לזכור את מפתח הניהול במחשב הזה (השאירו לא מסומן במחשב משותף או במחשב של הכיתה)',
     loadBtn: 'הצגת מפתחות',
-    pickLabel: '2. לחצו על המפתח שהכיתה תשתמש בו',
+    pickLabel: '2. לחצו על מפתח אחד כדי להציג אותו, או עברו בין כל המפתחות של סביבת עבודה למטה',
+    cycleLabel: 'מעבר בין כל המפתחות בסביבת עבודה',
+    cycleWsLabel: 'סביבת עבודה', dwellLabel: 'להציג כל מפתח במשך',
+    cycleBtn: 'התחלת מעבר בין המפתחות',
+    entireClass: 'כל הכיתה',
+    includeAll: 'לכלול במעבר את "כל הכיתה" (כל המפתחות ביחד)',
+    allOnlyBtn: 'להציג רק את כל הכיתה',
+    heroLeftAll: 'כסף שנשאר לכל הכיתה', heroSpentAll: 'כסף שכל הכיתה הוציאה',
+    noLimitAll: ' · לא לכל המפתחות יש מגבלת הוצאה',
+    atBy: v => v.plain + ' בשעה ' + v.time + ' · ' + v.name,
+    noCycleKeys: 'אין בסביבת העבודה הזו מפתחות פעילים למעבר ביניהם.',
+    position: v => 'מפתח ' + v.i + ' מתוך ' + v.n,
+    paused: 'מושהה', pause: 'השהיה', resume: 'המשך',
     pollLabel: 'לבדוק הוצאות חדשות כל',
-    seconds: v => v.n + ' שניות',
+    seconds: v => Number(v.n) === 1 ? 'שנייה אחת' : v.n + ' שניות',
     needKey: 'הדביקו קודם את מפתח הניהול.',
     loading: 'טוען מפתחות…',
     noKeys: 'לא נמצאו מפתחות API באף סביבת עבודה בחשבון. צרו מפתח ב-openrouter.ai ולחצו שוב על "הצגת מפתחות".',
@@ -374,12 +456,12 @@ async function getKey(hash){
 }
 // The docs do not say whether GET /keys/{hash} reaches keys outside the default workspace,
 // so on 404 read the key from its workspace's list instead, and keep doing that.
-async function getKeyFor(s){
+async function getKeyFor(hash, s){
   if(!s.viaList){
-    try{ return await getKey(s.hash); }
+    try{ return await getKey(hash); }
     catch(e){ if(e.status !== 404 || !s.wsId) throw e; s.viaList = true; }
   }
-  const k = (await listKeys(s.wsId)).find(x => x.hash === s.hash);
+  const k = (await listKeys(s.wsId)).find(x => x.hash === hash);
   if(!k) throw new ApiError(404, 'not found');
   return k;
 }
@@ -417,7 +499,7 @@ function applyLang(){
   root.lang = lang; root.dir = lang === 'he' ? 'rtl' : 'ltr';
   document.title = t('title');
   document.querySelectorAll('[data-t]').forEach(el => { el.textContent = t(el.dataset.t); });
-  [...$('pollSel').options].forEach(o => { o.textContent = t('seconds', {n:o.value}); });
+  [...$('pollSel').options, ...$('dwellSel').options].forEach(o => { o.textContent = t('seconds', {n:o.value}); });
   setRateMsg(rateMsgFor(), false);
   refreshAmounts();
 }
@@ -430,8 +512,9 @@ function setCurrency(c){
 // Redraw whatever is on screen so language or currency changes apply immediately.
 function refreshAmounts(){
   if(lastKeys.length) renderKeyList(lastKeys);
-  if(state && state.lastKey){
-    render(state.lastKey);
+  if(state){
+    $('flash').textContent = ''; // drop a flash formatted in the old language or currency
+    render();
     if(!$('status').classList.contains('stale')) setLive();
   }
 }
@@ -472,65 +555,141 @@ function renderKeyList(keys){
     const meta = document.createElement('span'); meta.className = 'meta';
     meta.textContent = t('listSpent', {m:money(k.usage)}) + (k.limit != null ? t('listLimit', {m:money(k.limit)}) : t('listNoLimit'));
     li.append(name, meta);
-    li.onclick = () => startBoard(k);
-    li.onkeydown = e => { if(e.key === 'Enter') startBoard(k); };
+    li.onclick = () => startBoard('single', [k]);
+    li.onkeydown = e => { if(e.key === 'Enter') startBoard('single', [k]); };
     ul.appendChild(li);
   });
+  renderCycleWorkspaces(keys);
   $('pick').hidden = !keys.length;
 }
 
+// Workspace choices for cycling: every workspace that has keys, in list order.
+function renderCycleWorkspaces(keys){
+  const sel = $('cycleWsSel'), keep = sel.value || store.get('cb_cycle_ws') || '';
+  sel.textContent = '';
+  const seen = new Set();
+  keys.forEach(k => {
+    const id = k.wsId || '';
+    if(seen.has(id)) return;
+    seen.add(id);
+    const o = document.createElement('option'); o.value = id; o.textContent = k.wsName || '—';
+    sel.appendChild(o);
+  });
+  if(seen.has(keep)) sel.value = keep;
+  $('cycleWsWrap').hidden = !multiWs;
+}
+
+// Enabled keys of the workspace chosen in the cycle box, or null (with a message) if there are none.
+function chosenWorkspaceKeys(){
+  const wsId = $('cycleWsSel').value;
+  store.set('cb_cycle_ws', wsId); store.set('cb_dwell', $('dwellSel').value);
+  store.set('cb_include_all', $('includeAll').checked ? '1' : '0');
+  const keys = lastKeys.filter(k => (k.wsId || '') === wsId && !k.disabled);
+  if(!keys.length){ setMsg(t('noCycleKeys'), true); return null; }
+  return keys;
+}
+function startCycle(){
+  const keys = chosenWorkspaceKeys();
+  if(!keys) return;
+  const order = keys.map(k => k.hash);
+  startBoard('cycle', keys, $('includeAll').checked ? [ALL, ...order] : order);
+}
+function startEntireClass(){
+  const keys = chosenWorkspaceKeys();
+  if(keys) startBoard('cycle', keys, [ALL]);
+}
+
 // ---- board ----
-function startBoard(k){
+// mode 'single': one key, polled with GET /keys/{hash}.
+// mode 'cycle': every enabled key of one workspace is tracked with one list request per poll;
+// `order` lists what is shown in turn (key hashes and/or ALL). Only one entry means no rotation.
+function startBoard(mode, keys, order){
   if(currency === 'ILS' && !(ilsPerUsd > 0)){ setMsg(t('needRate'), true); return; }
   pollSeconds = parseInt($('pollSel').value, 10) || 5;
-  store.set('cb_hash', k.hash); store.set('cb_poll', String(pollSeconds));
-  const now = Date.now();
-  state = {hash:k.hash, name:k.name || '', wsId:k.wsId || k.workspace_id || null, wsName:multiWs ? k.wsName : '',
-           viaList:false, startUsage:k.usage||0, startTime:now,
-           lastUsage:k.usage||0, lastChange:null, lastChangeTime:null, okTime:now, lastKey:k};
+  store.set('cb_poll', String(pollSeconds));
+  if(mode === 'single') store.set('cb_hash', keys[0].hash);
+  const now = Date.now(), track = {};
+  keys.forEach(k => {
+    track[k.hash] = {name:k.name || '', startUsage:k.usage||0, lastUsage:k.usage||0,
+                     lastChange:null, lastChangeTime:null, lastKey:k};
+  });
+  state = {mode, wsId:keys[0].wsId || keys[0].workspace_id || null, wsName:multiWs ? (keys[0].wsName || '') : '',
+           hashes:order || keys.map(k => k.hash), idx:0, track, startTime:now, okTime:now, viaList:false,
+           paused:false, dwell:parseInt($('dwellSel').value, 10) || 10};
   $('setup').hidden = true; $('board').hidden = false;
-  $('flash').textContent = '';
-  render(k); setLive();
+  $('pauseBtn').hidden = !rotates();
+  showKey(0); setLive();
   clearInterval(pollTimer);
   pollTimer = setInterval(poll, pollSeconds*1000);
 }
 
 function stopBoard(){
-  clearInterval(pollTimer); pollTimer = null; state = null;
+  clearInterval(pollTimer); pollTimer = null;
+  clearInterval(cycleTimer); cycleTimer = null;
+  state = null;
   if(document.fullscreenElement) document.exitFullscreen().catch(()=>{});
   $('board').hidden = true; $('setup').hidden = false;
   loadKeys();
 }
 
+// ---- cycling ----
+function showKey(idx){
+  const n = state.hashes.length;
+  state.idx = ((idx % n) + n) % n;
+  const f = $('flash'); f.textContent = ''; f.classList.remove('show');
+  render();
+  if(state.mode === 'cycle') restartCycle();
+}
+const rotates = () => !!state && state.mode === 'cycle' && state.hashes.length > 1;
+function restartCycle(){
+  clearInterval(cycleTimer); cycleTimer = null;
+  if(rotates() && !state.paused) cycleTimer = setInterval(() => showKey(state.idx + 1), state.dwell*1000);
+}
+function stepKey(d){ if(rotates()) showKey(state.idx + d); }
+function togglePause(){
+  if(!rotates()) return;
+  state.paused = !state.paused;
+  restartCycle(); render();
+}
+
+// ---- polling ----
 async function poll(){
-  if(!state) return;
-  const hash = state.hash;
+  const s = state;
+  if(!s) return;
   try{
-    const k = await getKeyFor(state);
-    if(!state || state.hash !== hash) return;
-    state.okTime = Date.now();
-    applyUsage(k.usage || 0);
-    state.lastKey = k;
-    render(k); setLive();
+    const keys = s.mode === 'cycle' ? await listKeys(s.wsId) : [await getKeyFor(s.hashes[0], s)];
+    if(state !== s) return;
+    s.okTime = Date.now();
+    // Flash the spend that belongs to what is on screen: one key, or all keys for Entire Class.
+    const showing = s.hashes[s.idx];
+    let shown = 0;
+    keys.forEach(k => {
+      const tr = s.track[k.hash];
+      if(!tr) return;
+      const d = applyUsage(tr, k);
+      if(showing === ALL || showing === k.hash) shown += d;
+    });
+    render(); setLive();
+    if(shown > 0) showFlash(shown);
   }catch(e){
-    if(!state) return;
+    if(state !== s) return;
     if(e.status === 401 || e.status === 403 || e.status === 404){
       clearInterval(pollTimer); pollTimer = null;
       setStatus(explain(e) + t('goBack'), true);
       return;
     }
-    setStatus(t('stale', {time:clock(new Date(state.okTime))}), true);
+    setStatus(t('stale', {time:clock(new Date(s.okTime))}), true);
   }
 }
 
-function applyUsage(usage){
-  const delta = usage - state.lastUsage;
-  if(delta < 0){ state.startUsage = usage; } // usage went down (key reset): restart the class count
-  if(delta > 1e-9){
-    state.lastChange = delta; state.lastChangeTime = Date.now();
-    showFlash(delta);
-  }
-  state.lastUsage = usage;
+// Updates one key's tracker; returns the new spend (0 if none).
+function applyUsage(tr, k){
+  const usage = k.usage || 0, delta = usage - tr.lastUsage;
+  if(delta < 0){ tr.startUsage = usage; } // usage went down (key reset): restart the class count
+  tr.lastUsage = usage; tr.lastKey = k;
+  if(delta <= 1e-9) return 0;
+  tr.lastChange = delta; tr.lastChangeTime = Date.now();
+  return delta;
 }
 
 function showFlash(delta){
@@ -541,25 +700,30 @@ function showFlash(delta){
 
 function setStatus(text, stale){ const s=$('status'); s.textContent=text; s.classList.toggle('stale', !!stale); }
 
-function render(k){
+function render(){
+  const tr = cur(), k = tr.lastKey;
   const usage = k.usage || 0;
   const hasLimit = k.limit != null && k.limit_remaining != null;
-  $('keyName').textContent = (state.name || t('unnamed')) + (state.wsName ? ' · ' + state.wsName : '');
+  $('keyName').textContent = tr.name || t('unnamed');
+  const where = [state.wsName];
+  if(rotates()) where.push(t('position', {i:state.idx + 1, n:state.hashes.length}) + (state.paused ? ' · ' + t('paused') : ''));
+  $('wsLine').textContent = where.filter(Boolean).join(' · ');
+  $('pauseBtn').textContent = state.paused ? t('resume') : t('pause');
   if(hasLimit){
     const reset = k.limit_reset ? t('resets', {when:(RESET[lang][k.limit_reset] || k.limit_reset)}) : '';
-    $('heroLabel').textContent = t('heroLeft');
+    $('heroLabel').textContent = t(tr.isAll ? 'heroLeftAll' : 'heroLeft');
     $('heroValue').textContent = money(k.limit_remaining);
     $('heroPlain').textContent = t('ofLimit', {limit:money(k.limit), spent:money(usage)}) + reset;
     const pct = k.limit ? 100*k.limit_remaining/k.limit : 0;
     $('bar').style.width = Math.max(0, Math.min(100, Math.round(pct*10)/10)) + '%';
     $('barWrap').hidden = false;
   }else{
-    $('heroLabel').textContent = t('heroSpent');
+    $('heroLabel').textContent = t(tr.isAll ? 'heroSpentAll' : 'heroSpent');
     $('heroValue').textContent = money(usage);
-    $('heroPlain').textContent = plain(usage) + t('noLimit');
+    $('heroPlain').textContent = plain(usage) + t(tr.isAll ? 'noLimitAll' : 'noLimit');
     $('barWrap').hidden = true;
   }
-  renderTiles(usage);
+  renderTiles(tr);
   $('rateNote').textContent = showIls()
     ? t('rateNote', {rate:ilsPerUsd.toFixed(4), manual:rateSrc === 'manual', date:rateSrc})
     : currency === 'ILS' ? t('noRate') : '';
@@ -567,14 +731,14 @@ function render(k){
 
 const setLive = () => setStatus(t('live', {n:pollSeconds}), false);
 
-function renderTiles(usage){
-  const cls = usage - state.startUsage;
+function renderTiles(tr){
+  const cls = tr.lastUsage - tr.startUsage;
   const mins = (Date.now() - state.startTime) / 60000;
   $('tClass').textContent = money(cls);
   $('tClassSub').textContent = t('since', {plain:plain(cls), time:clock(new Date(state.startTime))});
-  if(state.lastChange != null){
-    $('tLast').textContent = money(state.lastChange);
-    $('tLastSub').textContent = t('at', {plain:plain(state.lastChange), time:clock(new Date(state.lastChangeTime))});
+  if(tr.lastChange != null){
+    $('tLast').textContent = money(tr.lastChange);
+    $('tLastSub').textContent = t(tr.lastChangeBy ? 'atBy' : 'at', {plain:plain(tr.lastChange), time:clock(new Date(tr.lastChangeTime)), name:tr.lastChangeBy});
   }else{
     $('tLast').textContent = '—';
     $('tLastSub').textContent = t('waiting');
@@ -613,10 +777,21 @@ $('rateBtn').onclick = fetchRate;
 $('themeBtn').onclick = toggleTheme;
 $('fsBtn').onclick = toggleFullscreen;
 $('backBtn').onclick = stopBoard;
+$('cycleBtn').onclick = startCycle;
+$('allBtn').onclick = startEntireClass;
+$('pauseBtn').onclick = togglePause;
 // Match physical keys (e.code) so shortcuts also work with a Hebrew keyboard layout.
 document.addEventListener('keydown', e => {
   if($('board').hidden || e.ctrlKey || e.metaKey || e.altKey) return;
-  if(e.code === 'KeyF') toggleFullscreen();
+  if(e.code === 'Space'){
+    // Stop Space from also "clicking" a focused board button.
+    e.preventDefault();
+    if(document.activeElement && document.activeElement.blur) document.activeElement.blur();
+    togglePause();
+  }
+  // "Next" follows reading direction: → in English, ← in Hebrew.
+  else if(e.key === 'ArrowRight' || e.key === 'ArrowLeft') stepKey((e.key === 'ArrowRight') !== (lang === 'he') ? 1 : -1);
+  else if(e.code === 'KeyF') toggleFullscreen();
   else if(e.code === 'KeyT') toggleTheme();
   else if(e.code === 'KeyL') toggleBoardLang();
   else if(e.code === 'KeyK') stopBoard();
@@ -631,6 +806,8 @@ document.addEventListener('keydown', e => {
   const r = parseFloat(store.get('cb_rate'));
   if(r > 0 && r < MAX_ILS_PER_USD){ ilsPerUsd = r; rateSrc = store.get('cb_rate_src') || ''; $('rate').value = r; }
   const p = store.get('cb_poll'); if(p && $('pollSel').querySelector('option[value="'+p+'"]')) $('pollSel').value = p;
+  const dw = store.get('cb_dwell'); if(dw && $('dwellSel').querySelector('option[value="'+dw+'"]')) $('dwellSel').value = dw;
+  if(store.get('cb_include_all') === '0') $('includeAll').checked = false;
   applyLang();
   const c = store.get('cb_cur') === 'ILS' ? 'ILS' : 'USD';
   $('curSel').value = c;

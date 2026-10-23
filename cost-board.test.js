@@ -7,7 +7,15 @@ const keyC={hash:'hC',name:'Class key',disabled:false,limit:2,limit_remaining:1.
 let usageA=0.1, usageC=0.1;
 // One workspace by default; later tests add a second workspace or make the workspace list fail.
 let workspaces=[{id:'w1',name:'Default'}], wsFail=false;
-const KEYS_BY_WS={w1:[keyA,keyB], w2:[keyC]};
+// w3 is the cycling workspace: two live keys and one disabled key; w4 has only a disabled key.
+const keyD={hash:'hD',name:'Maya',disabled:false,limit:1,usage:0.2,limit_remaining:0.8};
+const keyE={hash:'hE',name:'Omar',disabled:false,limit:1,usage:0.3,limit_remaining:0.7};
+const keyF={hash:'hF',name:'Old key',disabled:true,limit:1,usage:0,limit_remaining:1};
+const keyG={hash:'hG',name:'Retired',disabled:true,limit:1,usage:0,limit_remaining:1};
+const usage3={hD:0.2,hE:0.3};
+const KEYS_BY_WS={w1:[keyA,keyB], w2:[keyC], w3:[keyD,keyE,keyF], w4:[keyG]};
+const live=k=>k.hash==='hC'?{...k,usage:usageC,limit_remaining:2-usageC}
+  : usage3[k.hash]!=null?{...k,usage:usage3[k.hash],limit_remaining:1-usage3[k.hash]}:k;
 const dom=new JSDOM(html,{runScripts:'dangerously',url:'https://localhost/',pretendToBeVisual:true,
   beforeParse(w){
     w.addEventListener('error',e=>errs.push(e.message));
@@ -19,7 +27,7 @@ const dom=new JSDOM(html,{runScripts:'dangerously',url:'https://localhost/',pret
       if(/\/workspaces\?limit=100&offset=0$/.test(url)) return wsFail ? {ok:false,status:500,json:async()=>({error:{message:'boom'}})}
         : {ok:true,json:async()=>({data:workspaces,total_count:workspaces.length})};
       const km=url.match(/\/keys\?(?:workspace_id=(\w+)&)?offset=0$/);
-      if(km) return {ok:true,json:async()=>({data:(KEYS_BY_WS[km[1]||'w1']||[]).map(k=>k.hash==='hC'?{...k,usage:usageC,limit_remaining:2-usageC}:k)})};
+      if(km) return {ok:true,json:async()=>({data:(KEYS_BY_WS[km[1]||'w1']||[]).map(live)})};
       // Simulate the single-key endpoint not reaching a non-default workspace.
       if(/\/keys\/hC$/.test(url)) return {ok:false,status:404,json:async()=>({error:{message:'Not found'}})};
       if(/\/keys\/hA$/.test(url)) return {ok:true,json:async()=>({data:{...keyA,usage:usageA,limit_remaining:5-usageA}})};
@@ -155,7 +163,7 @@ const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c) process.exitCode=1;
   $('langBtn').click();
   ok(root.dir==='rtl' && $('langSel').value==='he' && $('langBtn').textContent==='English · $' && $('heroLabel').textContent==='כסף שנשאר במפתח','board button switches to Hebrew');
   ok($('curSel').value==='ILS' && /₪/.test($('heroValue').textContent) && /19\.6000/.test($('heroValue').textContent),'board button also switches to shekels (4.90 USD x 4)');
-  ok(ev('state.startTime')===start0 && $('tClass').textContent.includes(ev('money(state.lastUsage-state.startUsage)')),'class count kept across language switch');
+  ok(ev('state.startTime')===start0 && $('tClass').textContent.includes(ev('money(cur().lastUsage-cur().startUsage)')),'class count kept across language switch');
   w.document.dispatchEvent(new w.KeyboardEvent('keydown',{key:'ך',code:'KeyL'}));
   ok(root.dir==='ltr' && $('langBtn').textContent==='עברית · ₪' && w.localStorage.getItem('cb_lang')==='en','L shortcut (Hebrew layout) switches back to English');
   ok($('curSel').value==='USD' && $('heroValue').textContent==='$4.9000' && $('rateNote').textContent==='','L shortcut also switches back to dollars');
@@ -173,7 +181,7 @@ const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c) process.exitCode=1;
   ok(heads.length===2 && heads[1]==='Workspace: Class workspace','keys grouped by workspace');
   ok(calls.some(c=>/\/keys\?workspace_id=w2&offset=0$/.test(c.url)),'non-default workspace queried with workspace_id');
   $('keyList').querySelector('li[data-hash="hC"]').click();
-  ok($('keyName').textContent==='Class key · Class workspace','board names key and workspace');
+  ok($('keyName').textContent==='Class key' && $('wsLine').textContent==='Class workspace','board shows key name large and workspace on top line');
   usageC=0.5; await ev('poll()');
   ok(ev('state.viaList')===true && $('tClass').textContent==='$0.4000' && !$('status').classList.contains('stale'),'single-key 404 falls back to workspace list and keeps updating');
 
@@ -181,6 +189,77 @@ const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c) process.exitCode=1;
   wsFail=true; ev('stopBoard()'); await sleep(20);
   ok($('keyList').querySelectorAll('li[data-hash]').length===2 && !$('keyList').querySelector('li.ws'),'workspace list failure falls back to default workspace');
   wsFail=false;
+
+  // Cycle mode
+  workspaces=[{id:'w1',name:'Default'},{id:'w2',name:'Class workspace'},{id:'w3',name:'Cycle room'},{id:'w4',name:'Empty room'}];
+  await ev('loadKeys()');
+  ok($('cycleWsSel').options.length===4 && !$('cycleWsWrap').hidden,'cycle: one choice per workspace');
+  change('cycleWsSel','w4'); $('cycleBtn').click();
+  ok($('board').hidden && /no enabled keys/.test($('setupMsg').textContent),'cycle: workspace with only disabled keys is refused');
+  $('includeAll').checked=false; // these cycle tests cover keys only; Entire Class is tested below
+  change('cycleWsSel','w3'); change('dwellSel','15'); $('cycleBtn').click();
+  ok(!$('board').hidden && $('keyName').textContent==='Maya' && $('wsLine').textContent==='Cycle room · key 1 of 2','cycle: starts on first enabled key, shows position');
+  ok(!$('pauseBtn').hidden && ev('state.dwell')===15 && w.localStorage.getItem('cb_dwell')==='15','cycle: pause button shown, delay applied and remembered');
+  ok(ev('state.hashes').join()==='hD,hE','cycle: disabled keys skipped');
+
+  // Off-screen key spends: tracked, no flash on the key being shown
+  const n0=calls.length; usage3.hE=0.35; await ev('poll()');
+  ok(calls.slice(n0).length===1 && /\/keys\?workspace_id=w3&offset=0$/.test(calls[calls.length-1].url),'cycle: one workspace list request per poll');
+  ok($('tClass').textContent==='$0.0000' && $('flash').textContent==='','cycle: off-screen spend does not change the key on screen');
+  ev('stepKey(1)');
+  ok($('keyName').textContent==='Omar' && $('tClass').textContent==='$0.0500' && $('tLast').textContent==='$0.0500','cycle: next key shows its own class total');
+
+  // Automatic advance, pause, Space, arrows
+  ev('state.dwell=0.05; restartCycle()'); await sleep(90);
+  ok(ev('state.idx')===0,'cycle: advances automatically after the delay');
+  ev('togglePause()'); const idxP=ev('state.idx'); await sleep(150);
+  ok(ev('state.idx')===idxP && ev('cycleTimer')===null && /paused/.test($('wsLine').textContent) && $('pauseBtn').textContent==='Resume','cycle: pause holds the current key');
+  ev('state.dwell=1000');
+  w.document.dispatchEvent(new w.KeyboardEvent('keydown',{key:' ',code:'Space'}));
+  ok(!ev('state.paused') && ev('cycleTimer')!==null,'Space resumes cycling');
+  w.document.dispatchEvent(new w.KeyboardEvent('keydown',{key:'ArrowRight',code:'ArrowRight'}));
+  ok(ev('state.idx')===(idxP+1)%2,'→ shows the next key in English');
+  change('langSel','he');
+  w.document.dispatchEvent(new w.KeyboardEvent('keydown',{key:'ArrowLeft',code:'ArrowLeft'}));
+  ok(ev('state.idx')===idxP && /מפתח \d מתוך 2/.test($('wsLine').textContent),'← shows the next key in Hebrew; position translated');
+  change('langSel','en');
+
+  // Leaving cycle mode stops its timer; single mode hides the pause button
+  ev('stopBoard()'); await sleep(20);
+  ok(ev('cycleTimer')===null,'stopping the board stops cycling');
+  $('keyList').querySelector('li[data-hash="hD"]').click();
+  ok($('pauseBtn').hidden && ev('state.mode')==='single' && $('keyName').textContent==='Maya','single mode: pause button hidden, key name shown');
+  w.document.dispatchEvent(new w.KeyboardEvent('keydown',{key:'ArrowRight',code:'ArrowRight'}));
+  ok($('keyName').textContent==='Maya','arrows do nothing in single mode');
+
+  // Delay choices start at 1 second; no timer bar under the key name
+  ok([...$('dwellSel').options].map(o=>o.value).join()==='1,2,3,5,10,15,30,60' && $('dwellSel').options[0].textContent==='1 second','delay choices start at 1 second');
+  ok(!w.document.getElementById('cycleBar') && !w.document.getElementById('cycleWrap'),'no timer bar under the key name');
+
+  // Entire Class in the cycle: first, and adds up every enabled key (hD 0.20/0.80 left, hE 0.35/0.65 left)
+  ev('stopBoard()'); await sleep(20);
+  $('includeAll').checked=true;
+  change('cycleWsSel','w3'); change('dwellSel','1'); $('cycleBtn').click();
+  ok(ev('state.hashes').join()==='__all__,hD,hE' && $('keyName').textContent==='Entire Class' && /key 1 of 3/.test($('wsLine').textContent),'Entire Class is first in the cycle');
+  ok($('heroLabel').textContent==='Money left for the entire class' && $('heroValue').textContent==='$1.4500','Entire Class: money left is the sum of key balances');
+  ok(w.localStorage.getItem('cb_include_all')==='1' && ev('state.dwell')===1,'Entire Class choice and 1-second delay applied');
+  ev('togglePause()'); // hold on Entire Class
+  usage3.hD=0.25; await ev('poll()'); await sleep(5);
+  usage3.hE=0.37; await ev('poll()');
+  ok($('tClass').textContent==='$0.0700','Entire Class: class total adds every key');
+  ok($('flash').textContent==='+$0.0200' && $('tLast').textContent==='$0.0200' && /· Omar$/.test($('tLastSub').textContent),'Entire Class: flashes any key\'s spend and names who spent last');
+  change('langSel','he');
+  ok($('keyName').textContent==='כל הכיתה' && $('heroLabel').textContent==='כסף שנשאר לכל הכיתה','Entire Class: Hebrew name and label');
+  change('langSel','en');
+
+  // Entire Class only, in a workspace where one key has no limit: shows total spent, no rotation
+  ev('stopBoard()'); await sleep(20);
+  change('cycleWsSel','w1'); $('allBtn').click();
+  ok(ev('state.hashes').join()==='__all__' && ev('cycleTimer')===null && $('pauseBtn').hidden && $('wsLine').textContent==='Default','Entire Class only: no rotation, no pause button, no position');
+  ok($('heroLabel').textContent==='Money the entire class has spent' && $('heroValue').textContent==='$2.1000' && /not every key has a spending limit/.test($('heroPlain').textContent),'Entire Class with an unlimited key shows total spent');
+  w.document.dispatchEvent(new w.KeyboardEvent('keydown',{key:'ArrowRight',code:'ArrowRight'}));
+  ok($('keyName').textContent==='Entire Class','arrows do nothing with Entire Class only');
+  ev('stopBoard()'); await sleep(20);
 
   ok(errs.length===0,'no script errors during run '+errs.join('|'));
   ev('clearInterval(pollTimer)'); w.close();
