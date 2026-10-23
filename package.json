@@ -2,7 +2,7 @@
   "name": "vibe-chat",
   "private": true,
   "scripts": {
-    "test": "node test.js"
+    "test": "node test.js && node cost-board.test.js"
   },
   "devDependencies": {
     "jsdom": "^26.0.0"

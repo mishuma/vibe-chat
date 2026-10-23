@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI Cost Board</title>
+<style>
+  :root{
+    --bg:#ffffff; --fg:#0b0d12; --muted:#4a5060; --line:#d5d8df; --panel:#f3f4f7;
+    --accent:#0b5fff; --spend:#c2410c; --good:#15803d; --bad:#b91c1c; --bar:#0b5fff; --barbg:#e3e6ec;
+  }
+  :root[data-theme="dark"]{
+    --bg:#05070b; --fg:#f5f7fb; --muted:#a8afbf; --line:#2a2f3a; --panel:#11151d;
+    --accent:#5b9bff; --spend:#ff8a4c; --good:#4ade80; --bad:#f87171; --bar:#5b9bff; --barbg:#1f2430;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{background:var(--bg);color:var(--fg);font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+  button,input,select{font:inherit}
+  button{cursor:pointer;border:1px solid var(--line);background:var(--panel);color:var(--fg);border-radius:8px;padding:8px 14px}
+  button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  button:disabled{opacity:.5;cursor:default}
+  [hidden]{display:none!important}
+
+  /* Setup screen */
+  #setup{max-width:760px;margin:0 auto;padding:32px 16px}
+  #setup h1{font-size:28px;margin:0 0 4px}
+  #setup p{color:var(--muted);margin:6px 0 16px}
+  #setup label{display:block;font-weight:600;margin:16px 0 6px}
+  #setup input[type=password],#setup select{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--fg)}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px}
+  .check{display:flex;gap:8px;align-items:center;font-weight:400!important;margin:10px 0 0!important;color:var(--muted)}
+  #setupMsg{margin-top:14px;min-height:1.4em;font-weight:600}
+  #setupMsg.err{color:var(--bad)}
+  #keyList{list-style:none;padding:0;margin:8px 0 0;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  #keyList li{display:flex;justify-content:space-between;gap:12px;padding:12px 14px;border-top:1px solid var(--line);cursor:pointer}
+  #keyList li:first-child{border-top:0}
+  #keyList li:hover,#keyList li:focus{background:var(--panel);outline:none}
+  #keyList .meta{color:var(--muted);font-size:14px;text-align:right;white-space:nowrap}
+  #keyList .off{opacity:.5}
+  details{margin-top:28px;color:var(--muted)}
+  details summary{cursor:pointer;font-weight:600}
+
+  /* Board (projector view) */
+  #board{min-height:100%;display:flex;flex-direction:column;padding:2.5vh 3vw}
+  .top{display:flex;justify-content:space-between;align-items:center;gap:16px;font-size:clamp(16px,2vw,32px);color:var(--muted)}
+  #keyName{font-weight:700;color:var(--fg);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #status{display:flex;align-items:center;gap:.4em;white-space:nowrap}
+  #status::before{content:"";width:.6em;height:.6em;border-radius:50%;background:var(--good)}
+  #status.stale::before{background:var(--bad)}
+  .hero{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center}
+  #heroLabel{font-size:clamp(20px,3.2vw,52px);color:var(--muted);font-weight:600}
+  #heroValue{font-size:clamp(64px,13vw,240px);font-weight:800;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.02em;margin:.08em 0}
+  #heroPlain{font-size:clamp(18px,2.4vw,40px);color:var(--muted);min-height:1.4em}
+  #barWrap{width:min(80vw,1400px);height:clamp(14px,2.2vh,30px);background:var(--barbg);border-radius:999px;overflow:hidden;margin-top:2vh}
+  #bar{height:100%;width:100%;background:var(--bar);transition:width .8s ease}
+  #flash{font-size:clamp(28px,5vw,90px);font-weight:800;color:var(--spend);height:1.2em;opacity:0;font-variant-numeric:tabular-nums}
+  #flash.show{animation:pop 2.4s ease-out}
+  @keyframes pop{0%{opacity:0;transform:translateY(.3em)}10%{opacity:1;transform:none}75%{opacity:1}100%{opacity:0}}
+  .tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:2vw;margin-top:2vh}
+  .tile{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:1.6vh 1.6vw}
+  .tile .k{font-size:clamp(14px,1.6vw,28px);color:var(--muted);font-weight:600}
+  .tile .v{font-size:clamp(28px,4.2vw,76px);font-weight:800;font-variant-numeric:tabular-nums;line-height:1.1}
+  .tile .s{font-size:clamp(13px,1.3vw,22px);color:var(--muted)}
+  .controls{display:flex;gap:8px;justify-content:flex-end;margin-top:1.6vh;opacity:.35;transition:opacity .2s}
+  .controls:hover,.controls:focus-within{opacity:1}
+  @media (max-width:700px){ .tiles{grid-template-columns:1fr} }
+  @media (prefers-reduced-motion:reduce){ #flash.show{animation:none;opacity:1} #bar{transition:none} }
+</style>
+</head>
+<body>
+
+<section id="setup">
+  <h1>AI Cost Board</h1>
+  <p>Shows, live on a projector, how much money an OpenRouter API key has spent while the class uses it.</p>
+
+  <label for="mgmt">1. Paste the workspace management key</label>
+  <input id="mgmt" type="password" autocomplete="off" spellcheck="false" placeholder="sk-or-v1-…">
+  <label class="check"><input id="remember" type="checkbox"> Remember the management key on this computer (leave unticked on shared or classroom computers)</label>
+  <div class="row"><button id="loadBtn" class="primary">Show keys</button></div>
+  <div id="setupMsg" role="status"></div>
+
+  <div id="pick" hidden>
+    <label>2. Click the key the class will use</label>
+    <ul id="keyList"></ul>
+    <label for="pollSel">Check for new spending every</label>
+    <select id="pollSel">
+      <option value="3">3 seconds</option>
+      <option value="5" selected>5 seconds</option>
+      <option value="10">10 seconds</option>
+      <option value="30">30 seconds</option>
+    </select>
+  </div>
+
+  <details>
+    <summary>For instructors: how this works</summary>
+    <p>A management key (create one at openrouter.ai/settings/management-keys) can list, create and delete every API key in the workspace, so it is never shown on screen and is kept only in this browser tab unless you tick "Remember". This page reads <code>GET https://openrouter.ai/api/v1/keys/{hash}</code> on a timer and shows the key's <code>usage</code> (dollars spent, all time) and <code>limit_remaining</code> (dollars left, if the key has a credit limit). It never changes a key. "This class" counts from the moment the board opened. Each jump in spending is usually one AI request, but if several requests land between checks they show as one jump. OpenRouter can take a few seconds to record a request's cost.</p>
+    <p>Keyboard on the board: <b>F</b> full screen, <b>T</b> light/dark, <b>Esc</b> or <b>K</b> back to key list.</p>
+  </details>
+</section>
+
+<section id="board" hidden>
+  <div class="top">
+    <div id="keyName"></div>
+    <div id="status">Live</div>
+  </div>
+  <div class="hero">
+    <div id="heroLabel"></div>
+    <div id="heroValue">$0.0000</div>
+    <div id="heroPlain"></div>
+    <div id="barWrap"><div id="bar"></div></div>
+    <div id="flash" aria-live="polite"></div>
+  </div>
+  <div class="tiles">
+    <div class="tile"><div class="k">Spent this class</div><div class="v" id="tClass">$0.0000</div><div class="s" id="tClassSub"></div></div>
+    <div class="tile"><div class="k">Last AI request</div><div class="v" id="tLast">—</div><div class="s" id="tLastSub">waiting for the first request…</div></div>
+    <div class="tile"><div class="k">At this pace</div><div class="v" id="tRate">—</div><div class="s" id="tRateSub">per hour</div></div>
+  </div>
+  <div class="controls">
+    <button id="themeBtn" title="T">Light / dark</button>
+    <button id="fsBtn" title="F">Full screen</button>
+    <button id="backBtn" title="Esc">Change key</button>
+  </div>
+</section>
+
+<script>
+const API = "https://openrouter.ai/api/v1";
+const PAGE_SIZE = 100, MAX_PAGES = 20, RATE_MIN_SECONDS = 60;
+const $ = id => document.getElementById(id);
+
+let mgmtKey = '', pollTimer = null, pollSeconds = 5;
+let state = null; // {hash,name,startUsage,startTime,lastUsage,lastChange,lastChangeTime,okTime}
+
+// ---- storage (all optional; page works without it) ----
+const store = {
+  get(k){ try{ return localStorage.getItem(k); }catch{ return null; } },
+  set(k,v){ try{ v==null ? localStorage.removeItem(k) : localStorage.setItem(k,v); }catch{} }
+};
+
+// ---- formatting ----
+function money(x){
+  if(x==null || !isFinite(x)) return '—';
+  return '$' + (Math.abs(x) >= 100 ? x.toFixed(2) : x.toFixed(4));
+}
+function plain(x){
+  if(x==null || !isFinite(x)) return '';
+  if(x === 0) return 'nothing yet';
+  if(x < 0.01) return 'less than 1 cent (' + (x*100).toFixed(2) + '¢)';
+  if(x < 1) return 'about ' + Math.round(x*100) + ' cents';
+  return 'about $' + x.toFixed(2);
+}
+function clock(d){ return d.toLocaleTimeString([], {hour:'numeric',minute:'2-digit',second:'2-digit'}); }
+
+// ---- API ----
+class ApiError extends Error{ constructor(status,msg){ super(msg); this.status=status; } }
+async function api(path){
+  let res;
+  try{ res = await fetch(API + path, {headers:{Authorization:'Bearer ' + mgmtKey}}); }
+  catch{ throw new ApiError(0, 'Could not reach openrouter.ai. Check the internet connection.'); }
+  let body = null;
+  try{ body = await res.json(); }catch{}
+  if(!res.ok){
+    const m = body && body.error && body.error.message || ('HTTP ' + res.status);
+    throw new ApiError(res.status, m);
+  }
+  return body;
+}
+function explain(e){
+  if(e.status === 401 || e.status === 403)
+    return 'OpenRouter rejected the management key (' + e.message + '). It must be a management key from openrouter.ai/settings/management-keys, not a regular API key.';
+  if(e.status === 404) return 'That key no longer exists in this workspace.';
+  if(e.status === 429) return 'OpenRouter says too many requests. Choose a slower check interval.';
+  return e.status ? 'OpenRouter error ' + e.status + ': ' + e.message : e.message;
+}
+async function listKeys(){
+  const all = [];
+  for(let page = 0; page < MAX_PAGES; page++){
+    const body = await api('/keys?offset=' + page*PAGE_SIZE);
+    const rows = (body && body.data) || [];
+    all.push(...rows);
+    if(rows.length < PAGE_SIZE) break;
+  }
+  return all;
+}
+async function getKey(hash){
+  const body = await api('/keys/' + encodeURIComponent(hash));
+  return (body && body.data) || body;
+}
+
+// ---- setup screen ----
+function setMsg(text, isErr){ const m=$('setupMsg'); m.textContent=text||''; m.className=isErr?'err':''; }
+
+async function loadKeys(){
+  mgmtKey = $('mgmt').value.trim();
+  if(!mgmtKey){ setMsg('Paste the management key first.', true); return; }
+  store.set('cb_mgmt', $('remember').checked ? mgmtKey : null);
+  $('loadBtn').disabled = true; setMsg('Loading keys…');
+  try{
+    const keys = await listKeys();
+    renderKeyList(keys);
+    setMsg(keys.length ? '' : 'This workspace has no API keys yet. Create one on openrouter.ai, then click Show keys again.', !keys.length);
+  }catch(e){ $('pick').hidden = true; setMsg(explain(e), true); }
+  finally{ $('loadBtn').disabled = false; }
+}
+
+function renderKeyList(keys){
+  const ul = $('keyList'); ul.textContent = '';
+  const lastHash = store.get('cb_hash');
+  keys.forEach(k => {
+    const li = document.createElement('li');
+    li.tabIndex = 0; li.dataset.hash = k.hash;
+    if(k.disabled) li.className = 'off';
+    const name = document.createElement('span');
+    name.textContent = (k.name || 'Unnamed key') + (k.disabled ? ' (disabled)' : '') + (k.hash === lastHash ? '  ← last used' : '');
+    const meta = document.createElement('span'); meta.className = 'meta';
+    meta.textContent = 'spent ' + money(k.usage) + (k.limit != null ? ' · limit ' + money(k.limit) : ' · no limit');
+    li.append(name, meta);
+    li.onclick = () => startBoard(k);
+    li.onkeydown = e => { if(e.key === 'Enter') startBoard(k); };
+    ul.appendChild(li);
+  });
+  $('pick').hidden = !keys.length;
+}
+
+// ---- board ----
+function startBoard(k){
+  pollSeconds = parseInt($('pollSel').value, 10) || 5;
+  store.set('cb_hash', k.hash); store.set('cb_poll', String(pollSeconds));
+  const now = Date.now();
+  state = {hash:k.hash, name:k.name || 'Unnamed key', startUsage:k.usage||0, startTime:now,
+           lastUsage:k.usage||0, lastChange:null, lastChangeTime:null, okTime:now};
+  $('keyName').textContent = state.name;
+  $('setup').hidden = true; $('board').hidden = false;
+  render(k);
+  clearInterval(pollTimer);
+  pollTimer = setInterval(poll, pollSeconds*1000);
+}
+
+function stopBoard(){
+  clearInterval(pollTimer); pollTimer = null; state = null;
+  if(document.fullscreenElement) document.exitFullscreen().catch(()=>{});
+  $('board').hidden = true; $('setup').hidden = false;
+  loadKeys();
+}
+
+async function poll(){
+  if(!state) return;
+  const hash = state.hash;
+  try{
+    const k = await getKey(hash);
+    if(!state || state.hash !== hash) return;
+    state.okTime = Date.now();
+    applyUsage(k.usage || 0);
+    render(k);
+  }catch(e){
+    if(!state) return;
+    if(e.status === 401 || e.status === 403 || e.status === 404){
+      clearInterval(pollTimer); pollTimer = null;
+      setStatus(explain(e) + ' Press Esc to go back.', true);
+      return;
+    }
+    setStatus('Can’t reach OpenRouter, retrying (last update ' + clock(new Date(state.okTime)) + ')', true);
+  }
+}
+
+function applyUsage(usage){
+  const delta = usage - state.lastUsage;
+  if(delta < 0){ state.startUsage = usage; } // usage went down (key reset): restart the class count
+  if(delta > 1e-9){
+    state.lastChange = delta; state.lastChangeTime = Date.now();
+    showFlash(delta);
+  }
+  state.lastUsage = usage;
+}
+
+function showFlash(delta){
+  const f = $('flash');
+  f.textContent = '+' + money(delta);
+  f.classList.remove('show'); void f.offsetWidth; f.classList.add('show');
+}
+
+function setStatus(text, stale){ const s=$('status'); s.textContent=text; s.classList.toggle('stale', !!stale); }
+
+function render(k){
+  const usage = k.usage || 0;
+  const hasLimit = k.limit != null && k.limit_remaining != null;
+  if(hasLimit){
+    $('heroLabel').textContent = 'Money left on this key';
+    $('heroValue').textContent = money(k.limit_remaining);
+    $('heroPlain').textContent = 'of ' + money(k.limit) + ' · ' + money(usage) + ' spent so far' + (k.limit_reset ? ' (limit resets ' + k.limit_reset + ')' : '');
+    const pct = k.limit ? 100*k.limit_remaining/k.limit : 0;
+    $('bar').style.width = Math.max(0, Math.min(100, Math.round(pct*10)/10)) + '%';
+    $('barWrap').hidden = false;
+  }else{
+    $('heroLabel').textContent = 'Money this key has spent';
+    $('heroValue').textContent = money(usage);
+    $('heroPlain').textContent = plain(usage) + ' · this key has no spending limit';
+    $('barWrap').hidden = true;
+  }
+  const cls = usage - state.startUsage;
+  const mins = (Date.now() - state.startTime) / 60000;
+  $('tClass').textContent = money(cls);
+  $('tClassSub').textContent = plain(cls) + ' since ' + clock(new Date(state.startTime));
+  if(state.lastChange != null){
+    $('tLast').textContent = money(state.lastChange);
+    $('tLastSub').textContent = plain(state.lastChange) + ' at ' + clock(new Date(state.lastChangeTime));
+  }
+  const enough = mins*60 >= RATE_MIN_SECONDS && cls > 0;
+  $('tRate').textContent = enough ? money(cls / mins * 60) : '—';
+  $('tRateSub').textContent = enough ? 'per hour if the class keeps going like this' : 'per hour (shows after the first minute of use)';
+  setStatus('Live · checks every ' + pollSeconds + 's', false);
+}
+
+// ---- controls ----
+function toggleTheme(){
+  const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+  document.documentElement.dataset.theme = next; store.set('cb_theme', next);
+}
+function toggleFullscreen(){
+  if(document.fullscreenElement) document.exitFullscreen().catch(()=>{});
+  else if(document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(()=>{});
+}
+
+$('loadBtn').onclick = loadKeys;
+$('mgmt').onkeydown = e => { if(e.key === 'Enter') loadKeys(); };
+$('remember').onchange = () => { if(!$('remember').checked) store.set('cb_mgmt', null); };
+$('themeBtn').onclick = toggleTheme;
+$('fsBtn').onclick = toggleFullscreen;
+$('backBtn').onclick = stopBoard;
+document.addEventListener('keydown', e => {
+  if($('board').hidden || e.ctrlKey || e.metaKey || e.altKey) return;
+  const k = e.key.toLowerCase();
+  if(k === 'f') toggleFullscreen();
+  else if(k === 't') toggleTheme();
+  else if(k === 'escape' || k === 'k'){ if(!document.fullscreenElement || k === 'k') stopBoard(); }
+});
+
+// ---- init ----
+(function init(){
+  document.documentElement.dataset.theme = store.get('cb_theme') === 'dark' ? 'dark' : 'light';
+  const p = store.get('cb_poll'); if(p && $('pollSel').querySelector('option[value="'+p+'"]')) $('pollSel').value = p;
+  const saved = store.get('cb_mgmt');
+  if(saved){ $('mgmt').value = saved; $('remember').checked = true; loadKeys(); }
+})();
+</script>
+</body>
+</html>
