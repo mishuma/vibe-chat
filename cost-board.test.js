@@ -3,7 +3,11 @@ const html=fs.readFileSync(require('path').join(__dirname,'cost-board.html'),'ut
 const calls=[]; const errs=[]; let mode='ok';
 const keyA={hash:'hA',name:'Period 3',label:'sk-or-v1-abc...123',disabled:false,limit:5,limit_remaining:4.9,usage:0.1};
 const keyB={hash:'hB',name:'No limit key',disabled:false,limit:null,limit_remaining:null,usage:2};
-let usageA=0.1;
+const keyC={hash:'hC',name:'Class key',disabled:false,limit:2,limit_remaining:1.9,usage:0.1,workspace_id:'w2'};
+let usageA=0.1, usageC=0.1;
+// One workspace by default; later tests add a second workspace or make the workspace list fail.
+let workspaces=[{id:'w1',name:'Default'}], wsFail=false;
+const KEYS_BY_WS={w1:[keyA,keyB], w2:[keyC]};
 const dom=new JSDOM(html,{runScripts:'dangerously',url:'https://localhost/',pretendToBeVisual:true,
   beforeParse(w){
     w.addEventListener('error',e=>errs.push(e.message));
@@ -12,7 +16,12 @@ const dom=new JSDOM(html,{runScripts:'dangerously',url:'https://localhost/',pret
         : {ok:true,json:async()=>({amount:1,base:'USD',date:'2026-10-22',rates:{ILS:3.5}})};
       if(mode==='net') throw new TypeError('Failed to fetch');
       if(mode==='401') return {ok:false,status:401,json:async()=>({error:{message:'Invalid credentials',code:401}})};
-      if(/\/keys\?offset=0$/.test(url)) return {ok:true,json:async()=>({data:[keyA,keyB]})};
+      if(/\/workspaces\?limit=100&offset=0$/.test(url)) return wsFail ? {ok:false,status:500,json:async()=>({error:{message:'boom'}})}
+        : {ok:true,json:async()=>({data:workspaces,total_count:workspaces.length})};
+      const km=url.match(/\/keys\?(?:workspace_id=(\w+)&)?offset=0$/);
+      if(km) return {ok:true,json:async()=>({data:(KEYS_BY_WS[km[1]||'w1']||[]).map(k=>k.hash==='hC'?{...k,usage:usageC,limit_remaining:2-usageC}:k)})};
+      // Simulate the single-key endpoint not reaching a non-default workspace.
+      if(/\/keys\/hC$/.test(url)) return {ok:false,status:404,json:async()=>({error:{message:'Not found'}})};
       if(/\/keys\/hA$/.test(url)) return {ok:true,json:async()=>({data:{...keyA,usage:usageA,limit_remaining:5-usageA}})};
       if(/\/keys\/hB$/.test(url)) return {ok:true,json:async()=>(keyB)}; // unwrapped shape also accepted
       throw new Error('unexpected '+url); };
@@ -139,6 +148,39 @@ const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c) process.exitCode=1;
   // Back to English + dollars
   change('langSel','en'); change('curSel','USD');
   ok(root.dir==='ltr' && $('heroValue').textContent==='$4.9000' && $('rateNote').textContent==='','English + USD restored');
+
+  // Board language button and L shortcut switch language without resetting the class count
+  const start0=ev('state.startTime');
+  // (rate is 4 ILS/USD, typed by hand earlier; board is in English + USD)
+  $('langBtn').click();
+  ok(root.dir==='rtl' && $('langSel').value==='he' && $('langBtn').textContent==='English · $' && $('heroLabel').textContent==='כסף שנשאר במפתח','board button switches to Hebrew');
+  ok($('curSel').value==='ILS' && /₪/.test($('heroValue').textContent) && /19\.6000/.test($('heroValue').textContent),'board button also switches to shekels (4.90 USD x 4)');
+  ok(ev('state.startTime')===start0 && $('tClass').textContent.includes(ev('money(state.lastUsage-state.startUsage)')),'class count kept across language switch');
+  w.document.dispatchEvent(new w.KeyboardEvent('keydown',{key:'ך',code:'KeyL'}));
+  ok(root.dir==='ltr' && $('langBtn').textContent==='עברית · ₪' && w.localStorage.getItem('cb_lang')==='en','L shortcut (Hebrew layout) switches back to English');
+  ok($('curSel').value==='USD' && $('heroValue').textContent==='$4.9000' && $('rateNote').textContent==='','L shortcut also switches back to dollars');
+
+  // Switching to shekels with no rate available: dollars stay, and the board says why
+  ev('ilsPerUsd=null'); mode='ratefail';
+  $('langBtn').click(); await sleep(10);
+  ok(/\$/.test($('heroValue').textContent) && $('rateNote').textContent==='אין עדיין שער חליפין, ולכן הסכומים מוצגים בדולרים','no rate: dollars shown with Hebrew explanation');
+  mode='ok'; ev('ilsPerUsd=4'); $('langBtn').click();
+
+  // Multiple workspaces: keys from every workspace, grouped under headings
+  workspaces=[{id:'w1',name:'Default'},{id:'w2',name:'Class workspace'}];
+  ev('stopBoard()'); await sleep(20);
+  const heads=[...$('keyList').querySelectorAll('li.ws')].map(h=>h.textContent);
+  ok(heads.length===2 && heads[1]==='Workspace: Class workspace','keys grouped by workspace');
+  ok(calls.some(c=>/\/keys\?workspace_id=w2&offset=0$/.test(c.url)),'non-default workspace queried with workspace_id');
+  $('keyList').querySelector('li[data-hash="hC"]').click();
+  ok($('keyName').textContent==='Class key · Class workspace','board names key and workspace');
+  usageC=0.5; await ev('poll()');
+  ok(ev('state.viaList')===true && $('tClass').textContent==='$0.4000' && !$('status').classList.contains('stale'),'single-key 404 falls back to workspace list and keeps updating');
+
+  // Workspace listing fails: still show default workspace keys, no headings
+  wsFail=true; ev('stopBoard()'); await sleep(20);
+  ok($('keyList').querySelectorAll('li[data-hash]').length===2 && !$('keyList').querySelector('li.ws'),'workspace list failure falls back to default workspace');
+  wsFail=false;
 
   ok(errs.length===0,'no script errors during run '+errs.join('|'));
   ev('clearInterval(pollTimer)'); w.close();

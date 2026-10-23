@@ -45,6 +45,7 @@
   #keyList li:hover,#keyList li:focus{background:var(--panel);outline:none}
   #keyList .meta{color:var(--muted);font-size:14px;text-align:end;white-space:nowrap}
   #keyList .off{opacity:.5}
+  #keyList li.ws{background:var(--panel);color:var(--muted);font-size:14px;font-weight:700;cursor:default;padding:8px 14px}
   details{margin-top:28px;color:var(--muted);text-align:left}
   details summary{cursor:pointer;font-weight:600}
 
@@ -129,9 +130,9 @@
   <!-- Instructor notes stay in English in every UI language. -->
   <details lang="en" dir="ltr">
     <summary>For instructors: how this works</summary>
-    <p>A management key (create one at openrouter.ai/settings/management-keys) can list, create and delete every API key in the workspace, so it is never shown on screen and is kept only in this browser tab unless you tick "Remember". This page reads <code>GET https://openrouter.ai/api/v1/keys/{hash}</code> on a timer and shows the key's <code>usage</code> (dollars spent, all time) and <code>limit_remaining</code> (dollars left, if the key has a credit limit). It never changes a key. "This class" counts from the moment the board opened. Each jump in spending is usually one AI request, but if several requests land between checks they show as one jump. OpenRouter can take a few seconds to record a request's cost.</p>
+    <p>A management key (create one at openrouter.ai/settings/management-keys) can list, create and delete every API key in the workspace, so it is never shown on screen and is kept only in this browser tab unless you tick "Remember". This page reads <code>GET https://openrouter.ai/api/v1/keys/{hash}</code> on a timer and shows the key's <code>usage</code> (dollars spent, all time) and <code>limit_remaining</code> (dollars left, if the key has a credit limit). It never changes a key. Keys from every workspace in the account are listed (via <code>GET /api/v1/workspaces</code>), grouped by workspace when there is more than one. "This class" counts from the moment the board opened. Each jump in spending is usually one AI request, but if several requests land between checks they show as one jump. OpenRouter can take a few seconds to record a request's cost.</p>
     <p>OpenRouter bills in US dollars. In shekels, the board converts with the rate shown at the bottom of the screen: the European Central Bank rate from frankfurter.dev, fetched when you choose shekels or click "Get today's rate", or a rate you type in yourself. The Hebrew interface turns the layout right-to-left; these notes stay in English.</p>
-    <p>Keyboard on the board: <b>F</b> full screen, <b>T</b> light/dark, <b>Esc</b> or <b>K</b> back to key list. The keys work with a Hebrew keyboard layout too.</p>
+    <p>Keyboard on the board: <b>F</b> full screen, <b>T</b> light/dark, <b>L</b> switches between English with dollars and Hebrew with shekels (the class count keeps running), <b>Esc</b> or <b>K</b> back to key list. The keys work with a Hebrew keyboard layout too.</p>
   </details>
 </section>
 
@@ -155,6 +156,7 @@
   <div class="footer">
     <div id="rateNote"></div>
     <div class="controls">
+      <button id="langBtn" title="L" data-t="langBtn"></button>
       <button id="themeBtn" title="T" data-t="themeBtn"></button>
       <button id="fsBtn" title="F" data-t="fsBtn"></button>
       <button id="backBtn" title="Esc" data-t="backBtn"></button>
@@ -169,8 +171,8 @@ const RATE_URL = "https://api.frankfurter.dev/v1/latest?base=USD&symbols=ILS";
 const PAGE_SIZE = 100, MAX_PAGES = 20, RATE_MIN_SECONDS = 60, MAX_ILS_PER_USD = 100;
 const $ = id => document.getElementById(id);
 
-let mgmtKey = '', pollTimer = null, pollSeconds = 5, lastKeys = [];
-let state = null; // {hash,name,startUsage,startTime,lastUsage,lastChange,lastChangeTime,okTime,lastKey}
+let mgmtKey = '', pollTimer = null, pollSeconds = 5, lastKeys = [], multiWs = false;
+let state = null; // {hash,name,wsId,wsName,viaList,startUsage,startTime,lastUsage,lastChange,lastChangeTime,okTime,lastKey}
 let lang = 'en', currency = 'USD', ilsPerUsd = null, rateSrc = ''; // rateSrc: 'manual' or the ECB date
 
 // ---- UI strings. Plain strings or functions taking a vars object. ----
@@ -200,7 +202,8 @@ const STR = {
     seconds: v => v.n + ' seconds',
     needKey: 'Paste the management key first.',
     loading: 'Loading keys…',
-    noKeys: 'This workspace has no API keys yet. Create one on openrouter.ai, then click Show keys again.',
+    noKeys: 'No API keys found in any workspace of this account. Create one on openrouter.ai, then click Show keys again.',
+    workspace: v => 'Workspace: ' + v.name,
     unnamed: 'Unnamed key', disabled: ' (disabled)', lastUsed: '  ← last used',
     listSpent: v => 'spent ' + v.m, listLimit: v => ' · limit ' + v.m, listNoLimit: ' · no limit',
     errAuth: v => 'OpenRouter rejected the management key (' + v.msg + '). It must be a management key from openrouter.ai/settings/management-keys, not a regular API key.',
@@ -223,6 +226,8 @@ const STR = {
     perHourWait: 'per hour (shows after the first minute of use)',
     rateNote: v => '1 US dollar = ' + v.rate + ' shekels · ' + (v.manual ? 'rate set by hand' : 'European Central Bank rate, ' + v.date),
     themeBtn: 'Light / dark', fsBtn: 'Full screen', backBtn: 'Change key',
+    langBtn: 'עברית · ₪', // names the language and currency the button switches to
+    noRate: 'No exchange rate yet, so amounts are in US dollars',
     nothing: 'nothing yet',
     tiny: v => v.cur === 'ILS' ? 'less than 1 agora (' + v.n + ' agorot)' : 'less than 1 cent (' + v.n + '¢)',
     sub: v => v.cur === 'ILS' ? (v.n === 1 ? 'about 1 agora' : 'about ' + v.n + ' agorot')
@@ -250,7 +255,8 @@ const STR = {
     seconds: v => v.n + ' שניות',
     needKey: 'הדביקו קודם את מפתח הניהול.',
     loading: 'טוען מפתחות…',
-    noKeys: 'עדיין אין מפתחות API בסביבת העבודה. צרו מפתח ב-openrouter.ai ולחצו שוב על "הצגת מפתחות".',
+    noKeys: 'לא נמצאו מפתחות API באף סביבת עבודה בחשבון. צרו מפתח ב-openrouter.ai ולחצו שוב על "הצגת מפתחות".',
+    workspace: v => 'סביבת עבודה: ' + v.name,
     unnamed: 'מפתח ללא שם', disabled: ' (מושבת)', lastUsed: '  ← בשימוש אחרון',
     listSpent: v => 'הוצאה ' + v.m, listLimit: v => ' · מגבלה ' + v.m, listNoLimit: ' · ללא מגבלה',
     errAuth: v => 'OpenRouter דחה את מפתח הניהול (' + v.msg + '). צריך מפתח ניהול מ-openrouter.ai/settings/management-keys, לא מפתח API רגיל.',
@@ -273,6 +279,8 @@ const STR = {
     perHourWait: 'לשעה (יוצג אחרי הדקה הראשונה)',
     rateNote: v => 'דולר אחד = ' + v.rate + ' ₪ · ' + (v.manual ? 'שער שהוקלד ידנית' : 'שער הבנק המרכזי האירופי, ' + v.date),
     themeBtn: 'בהיר / כהה', fsBtn: 'מסך מלא', backBtn: 'החלפת מפתח',
+    langBtn: 'English · $',
+    noRate: 'אין עדיין שער חליפין, ולכן הסכומים מוצגים בדולרים',
     nothing: 'עדיין כלום',
     tiny: v => v.cur === 'ILS' ? 'פחות מאגורה אחת (' + v.n + ' אגורות)' : 'פחות מסנט אחד (' + v.n + ' סנט)',
     sub: v => v.cur === 'ILS' ? (v.n === 1 ? 'בערך אגורה אחת' : 'בערך ' + v.n + ' אגורות')
@@ -334,19 +342,46 @@ function explain(e){
   if(e.status === 429) return t('err429');
   return e.status ? t('errOther', {status:e.status, msg:e.message}) : t('errNet');
 }
-async function listKeys(){
+// Pages through a list endpoint; `path` already ends in "?" or "&".
+async function listAll(path){
   const all = [];
   for(let page = 0; page < MAX_PAGES; page++){
-    const body = await api('/keys?offset=' + page*PAGE_SIZE);
+    const body = await api(path + 'offset=' + page*PAGE_SIZE);
     const rows = (body && body.data) || [];
     all.push(...rows);
     if(rows.length < PAGE_SIZE) break;
   }
   return all;
 }
+// Without workspace_id, OpenRouter returns only the default workspace's keys.
+const listKeys = wsId => listAll('/keys?' + (wsId ? 'workspace_id=' + encodeURIComponent(wsId) + '&' : ''));
+const listWorkspaces = () => listAll('/workspaces?limit=' + PAGE_SIZE + '&');
+
+// Keys from every workspace, tagged with the workspace name.
+// If workspaces cannot be listed, fall back to the default workspace (listKeys reports any auth error).
+async function listAllKeys(){
+  let workspaces = [];
+  try{ workspaces = await listWorkspaces(); }catch{ workspaces = []; }
+  if(!workspaces.length) return {keys: await listKeys(), multi: false};
+  const perWs = await Promise.all(workspaces.map(ws => listKeys(ws.id)));
+  const keys = perWs.flatMap((ks, i) => ks.map(k => ({...k, wsId: workspaces[i].id, wsName: workspaces[i].name || ''})));
+  return {keys, multi: workspaces.length > 1};
+}
+
 async function getKey(hash){
   const body = await api('/keys/' + encodeURIComponent(hash));
   return (body && body.data) || body;
+}
+// The docs do not say whether GET /keys/{hash} reaches keys outside the default workspace,
+// so on 404 read the key from its workspace's list instead, and keep doing that.
+async function getKeyFor(s){
+  if(!s.viaList){
+    try{ return await getKey(s.hash); }
+    catch(e){ if(e.status !== 404 || !s.wsId) throw e; s.viaList = true; }
+  }
+  const k = (await listKeys(s.wsId)).find(x => x.hash === s.hash);
+  if(!k) throw new ApiError(404, 'not found');
+  return k;
 }
 
 // ---- exchange rate ----
@@ -387,7 +422,7 @@ function applyLang(){
   refreshAmounts();
 }
 function setCurrency(c){
-  currency = c; store.set('cb_cur', c);
+  currency = c; store.set('cb_cur', c); $('curSel').value = c;
   $('rateRow').hidden = c !== 'ILS';
   if(c === 'ILS' && !(ilsPerUsd > 0)) fetchRate();
   refreshAmounts();
@@ -410,8 +445,8 @@ async function loadKeys(){
   store.set('cb_mgmt', $('remember').checked ? mgmtKey : null);
   $('loadBtn').disabled = true; setMsg(t('loading'));
   try{
-    const keys = await listKeys();
-    lastKeys = keys;
+    const {keys, multi} = await listAllKeys();
+    lastKeys = keys; multiWs = multi;
     renderKeyList(keys);
     setMsg(keys.length ? '' : t('noKeys'), !keys.length);
   }catch(e){ lastKeys = []; $('pick').hidden = true; setMsg(explain(e), true); }
@@ -421,7 +456,14 @@ async function loadKeys(){
 function renderKeyList(keys){
   const ul = $('keyList'); ul.textContent = '';
   const lastHash = store.get('cb_hash');
+  let ws = null;
   keys.forEach(k => {
+    if(multiWs && k.wsId !== ws){
+      ws = k.wsId;
+      const h = document.createElement('li'); h.className = 'ws';
+      h.textContent = t('workspace', {name: k.wsName || '—'});
+      ul.appendChild(h);
+    }
     const li = document.createElement('li');
     li.tabIndex = 0; li.dataset.hash = k.hash;
     if(k.disabled) li.className = 'off';
@@ -443,7 +485,8 @@ function startBoard(k){
   pollSeconds = parseInt($('pollSel').value, 10) || 5;
   store.set('cb_hash', k.hash); store.set('cb_poll', String(pollSeconds));
   const now = Date.now();
-  state = {hash:k.hash, name:k.name || '', startUsage:k.usage||0, startTime:now,
+  state = {hash:k.hash, name:k.name || '', wsId:k.wsId || k.workspace_id || null, wsName:multiWs ? k.wsName : '',
+           viaList:false, startUsage:k.usage||0, startTime:now,
            lastUsage:k.usage||0, lastChange:null, lastChangeTime:null, okTime:now, lastKey:k};
   $('setup').hidden = true; $('board').hidden = false;
   $('flash').textContent = '';
@@ -463,7 +506,7 @@ async function poll(){
   if(!state) return;
   const hash = state.hash;
   try{
-    const k = await getKey(hash);
+    const k = await getKeyFor(state);
     if(!state || state.hash !== hash) return;
     state.okTime = Date.now();
     applyUsage(k.usage || 0);
@@ -501,7 +544,7 @@ function setStatus(text, stale){ const s=$('status'); s.textContent=text; s.clas
 function render(k){
   const usage = k.usage || 0;
   const hasLimit = k.limit != null && k.limit_remaining != null;
-  $('keyName').textContent = state.name || t('unnamed');
+  $('keyName').textContent = (state.name || t('unnamed')) + (state.wsName ? ' · ' + state.wsName : '');
   if(hasLimit){
     const reset = k.limit_reset ? t('resets', {when:(RESET[lang][k.limit_reset] || k.limit_reset)}) : '';
     $('heroLabel').textContent = t('heroLeft');
@@ -518,7 +561,8 @@ function render(k){
   }
   renderTiles(usage);
   $('rateNote').textContent = showIls()
-    ? t('rateNote', {rate:ilsPerUsd.toFixed(4), manual:rateSrc === 'manual', date:rateSrc}) : '';
+    ? t('rateNote', {rate:ilsPerUsd.toFixed(4), manual:rateSrc === 'manual', date:rateSrc})
+    : currency === 'ILS' ? t('noRate') : '';
 }
 
 const setLive = () => setStatus(t('live', {n:pollSeconds}), false);
@@ -553,7 +597,16 @@ function toggleFullscreen(){
 $('loadBtn').onclick = loadKeys;
 $('mgmt').onkeydown = e => { if(e.key === 'Enter') loadKeys(); };
 $('remember').onchange = () => { if(!$('remember').checked) store.set('cb_mgmt', null); };
-$('langSel').onchange = () => { lang = $('langSel').value; store.set('cb_lang', lang); applyLang(); };
+function setLang(l){ lang = l; $('langSel').value = l; store.set('cb_lang', l); applyLang(); }
+// The board switch pairs language with currency: Hebrew shows shekels, English shows dollars.
+// The setup dropdowns stay independent.
+function toggleBoardLang(){
+  const toHe = lang !== 'he';
+  setCurrency(toHe ? 'ILS' : 'USD');
+  setLang(toHe ? 'he' : 'en');
+}
+$('langSel').onchange = () => setLang($('langSel').value);
+$('langBtn').onclick = toggleBoardLang;
 $('curSel').onchange = () => setCurrency($('curSel').value);
 $('rate').onchange = onRateTyped;
 $('rateBtn').onclick = fetchRate;
@@ -565,6 +618,7 @@ document.addEventListener('keydown', e => {
   if($('board').hidden || e.ctrlKey || e.metaKey || e.altKey) return;
   if(e.code === 'KeyF') toggleFullscreen();
   else if(e.code === 'KeyT') toggleTheme();
+  else if(e.code === 'KeyL') toggleBoardLang();
   else if(e.code === 'KeyK') stopBoard();
   else if(e.key === 'Escape' && !document.fullscreenElement) stopBoard();
 });
