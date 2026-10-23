@@ -6,13 +6,12 @@ Single-file browser chat for learning vibe coding. Students use their own OpenRo
 Open `vibe-chat.html` in Chrome or Edge. No server, no install. Camera QR scanning needs https or localhost (Chrome usually allows it from a file too).
 
 ## Develop (optional)
-- Edit `src/app-template.html`, then `python3 build.py` to regenerate `vibe-chat.html`.
-- `npm install && npm test` runs the jsdom checks against the built file.
-- `vendor/jsQR.lite.min.js` is jsQR 1.4.0 (Apache-2.0), minified, with the Shift-JIS table removed. Kanji-mode QR codes will not decode; API-key QR codes are unaffected.
+- Edit `vibe-chat.html` directly. It is the only source file. The QR decoder (jsQR 1.4.0, minified, Shift-JIS table removed) is the single long `<script>` line near the end; Kanji-mode QR codes will not decode, API-key QR codes are unaffected.
+- `npm install && npm test` runs the jsdom checks against it.
 
 ## Not yet verified against a real key
 Streaming, attachments (PDF via OpenRouter file input), key test, QR scan, file downloads, and the assumption that `usage.cost` is in USD.
 
 ## License
 
-MIT (see `LICENSE`). The bundled QR decoder in `vendor/` is jsQR, Apache-2.0 (see `vendor/jsQR.LICENSE`).
+MIT (see `LICENSE`). The QR decoder inlined in `vibe-chat.html` is jsQR, Apache-2.0 (see `NOTICE-jsQR.txt`).
