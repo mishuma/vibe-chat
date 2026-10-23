@@ -8,6 +8,8 @@ const dom=new JSDOM(html,{runScripts:'dangerously',url:'https://localhost/',pret
   beforeParse(w){
     w.addEventListener('error',e=>errs.push(e.message));
     w.fetch=async(url,opts)=>{ url=String(url); calls.push({url,auth:opts&&opts.headers&&opts.headers.Authorization});
+      if(url.includes('frankfurter')) return mode==='ratefail' ? {ok:false,status:500,json:async()=>({})}
+        : {ok:true,json:async()=>({amount:1,base:'USD',date:'2026-10-22',rates:{ILS:3.5}})};
       if(mode==='net') throw new TypeError('Failed to fetch');
       if(mode==='401') return {ok:false,status:401,json:async()=>({error:{message:'Invalid credentials',code:401}})};
       if(/\/keys\?offset=0$/.test(url)) return {ok:true,json:async()=>({data:[keyA,keyB]})};
@@ -93,6 +95,50 @@ const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c) process.exitCode=1;
   // theme
   const t0=w.document.documentElement.dataset.theme; ev('toggleTheme()');
   ok(w.document.documentElement.dataset.theme!==t0,'theme toggles');
+
+  // Hebrew UI (board currently shows the no-limit key, usage $2)
+  const change=(id,v)=>{ $(id).value=v; $(id).dispatchEvent(new w.Event('change')); };
+  change('langSel','he');
+  const root=w.document.documentElement;
+  ok(root.dir==='rtl' && root.lang==='he','Hebrew: page switches to rtl');
+  ok($('loadBtn').textContent==='הצגת מפתחות' && $('heroLabel').textContent==='כסף שהמפתח הוציא','Hebrew: setup and board text translated live');
+  ok(/^For instructors/.test(w.document.querySelector('details summary').textContent) && w.document.querySelector('details').dir==='ltr','instructor notes stay English, ltr');
+  ok(w.localStorage.getItem('cb_lang')==='he','language remembered');
+
+  // Shekels: picking ILS fetches the ECB rate and converts
+  change('curSel','ILS'); await sleep(10);
+  ok(ev('ilsPerUsd')===3.5 && /3\.5000/.test($('rateNote').textContent) && /2026-10-22/.test($('rateNote').textContent),'ILS: ECB rate fetched and shown on board');
+  ok(/₪/.test($('heroValue').textContent) && /7\.0000/.test($('heroValue').textContent),'hero converted to shekels (2 USD x 3.5)');
+  ok(/^בערך/.test($('heroPlain').textContent),'Hebrew plain-language amount');
+  ok(/פחות מאגורה אחת \(0\.35 אגורות\)/.test(ev('plain(0.001)')),'agorot wording for tiny amounts');
+
+  // Hand-typed rate overrides; nonsense rate rejected
+  change('rate','4');
+  ok(ev('rateSrc')==='manual' && /8\.0000/.test($('heroValue').textContent) && /ידנית/.test($('rateNote').textContent),'typed rate applies and is labelled as manual');
+  change('rate','3600');
+  ok($('rateMsg').className==='err' && ev('ilsPerUsd')===4,'out-of-range rate rejected, previous kept');
+
+  // Rate fetch failure keeps the current rate
+  mode='ratefail'; await ev('fetchRate()');
+  ok($('rateMsg').className==='err' && ev('ilsPerUsd')===4,'rate fetch failure: error shown, rate kept');
+  mode='ok';
+
+  // No rate at all blocks starting in shekels
+  ev('stopBoard()'); await sleep(10); ev('ilsPerUsd=null');
+  $('keyList').querySelector('li').click();
+  ok($('board').hidden && /שער חליפין/.test($('setupMsg').textContent),'ILS without a rate: board does not start, Hebrew message');
+  ev('ilsPerUsd=4');
+  ok(/₪/.test($('keyList').querySelector('.meta').textContent),'key list amounts in shekels');
+
+  // Shortcuts use physical keys, so a Hebrew layout works
+  $('keyList').querySelector('li').click();
+  const th=root.dataset.theme;
+  w.document.dispatchEvent(new w.KeyboardEvent('keydown',{key:'א',code:'KeyT'}));
+  ok(root.dataset.theme!==th,'T shortcut works with Hebrew layout (e.code)');
+
+  // Back to English + dollars
+  change('langSel','en'); change('curSel','USD');
+  ok(root.dir==='ltr' && $('heroValue').textContent==='$4.9000' && $('rateNote').textContent==='','English + USD restored');
 
   ok(errs.length===0,'no script errors during run '+errs.join('|'));
   ev('clearInterval(pollTimer)'); w.close();
