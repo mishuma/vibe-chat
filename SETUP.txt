@@ -1,0 +1,33 @@
+VIBE CHAT - SETUP BEFORE THE WORKSHOP (about 3 minutes)
+
+You do not need to install anything. Vibe Chat is one web page that runs in your browser.
+This setup script checks your laptop and puts the page in a folder you choose, so any problem
+can be fixed before the workshop. You will get your API key at the workshop. Do not look for one now.
+
+1. Unzip this folder. (Windows: right-click the zip > Extract All. Mac: double-click the zip.)
+   Do not run anything from inside the zip window.
+
+2. Run the setup:
+   WINDOWS: double-click  setup-windows.cmd
+            If Windows says "Windows protected your PC", click "More info", then "Run anyway".
+   MAC:     open the Terminal app, type   bash   followed by a space, drag  setup-mac.sh  into
+            the Terminal window, and press Enter.
+
+3. When asked where to put the working folder, press Enter to accept the suggestion
+   (a folder named vibe-chat inside Documents), or type another folder.
+
+4. Read the last lines:
+   - "all checks passed" or "ready, with N warning(s)": you are done. Read any WARN lines.
+   - "problem(s) must be fixed": follow the "Fix:" line under each [FAIL]. Run the script again after fixing.
+     You can run it as many times as you like. It never deletes your files and reuses your folder.
+
+5. If you cannot fix a problem, email the file setup-report.txt (it is in your working folder, or
+   next to the script if the folder could not be made) to the workshop organizer.
+
+What the script does: checks your system, browser, camera and internet access to openrouter.ai,
+creates your working folder, and copies vibe-chat.html into it. It does not install software, change
+settings, or set environment variables, and it copies no API keys.
+
+Tips
+- Use Google Chrome or Microsoft Edge. Safari and Firefox may block the camera, which is needed to scan the key QR code.
+- A school or work network may block openrouter.ai. If the check fails, try a phone hotspot.
