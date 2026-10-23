@@ -12,3 +12,7 @@ Open `vibe-chat.html` in Chrome or Edge. No server, no install. Camera QR scanni
 
 ## Not yet verified against a real key
 Streaming, attachments (PDF via OpenRouter file input), key test, QR scan, file downloads, and the assumption that `usage.cost` is in USD.
+
+## License
+
+MIT (see `LICENSE`). The bundled QR decoder in `vendor/` is jsQR, Apache-2.0 (see `vendor/jsQR.LICENSE`).
