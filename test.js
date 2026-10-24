@@ -5,6 +5,7 @@ function sse(parts){ const enc=new TextEncoder(); let i=0; return {ok:true,body:
 const dom=new JSDOM(html,{runScripts:'dangerously',url:'https://localhost/',pretendToBeVisual:true,
   beforeParse(w){
     w.HTMLCanvasElement.prototype.getContext=()=>null;
+    if(!w.TextDecoder) w.TextDecoder=TextDecoder;   // older jsdom versions do not expose it; real browsers do
     w.addEventListener('error',e=>errs.push(e.message));
     w.fetch=async(url,opts)=>{ url=String(url); calls.push({url,body:opts&&opts.body});
       if(url.endsWith('/models')) return {ok:true,json:async()=>({data:[{id:'anthropic/claude-sonnet-5.5',context_length:1000000,pricing:{prompt:'0.000003',completion:'0.000015'},architecture:{input_modalities:['text','image']}}]})};
