@@ -9,6 +9,9 @@ Open `vibe-chat.html` in Chrome or Edge. No server, no install. Camera QR scanni
 - Edit `vibe-chat.html` directly. It is the only source file. The QR decoder (jsQR 1.4.0, minified, Shift-JIS table removed) is the single long `<script>` line near the end; Kanji-mode QR codes will not decode, API-key QR codes are unaffected.
 - `npm install && npm test` runs the jsdom checks against it.
 
+## Workshop slides
+Open `workshop-slides.html` in a browser; arrow keys or click to move. Graphics-first slides on the intent-based development workflow (objective, prompt, code, micro:bit/Cutebot, observe, iterate) and how an AI agent could replace the student.
+
 ## Voice typing
 The mic button (left of the paperclip) uses the browser's speech recognition, not the operating system's dictation. Chrome and Edge send the audio to Google / Microsoft servers; a notice says so on first use. The small EN/HE button under the mic picks English or Hebrew. Firefox is not supported.
 
