@@ -73,6 +73,13 @@
   .inputrow{display:flex;gap:8px;align-items:stretch}
   .inputrow button.iconbtn{width:48px;padding:0;display:grid;place-items:center}
   .inputrow svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+  .micgroup{display:flex;flex-direction:column;gap:4px;width:48px}
+  .micgroup button.iconbtn{flex:1;width:48px;min-height:0}
+  #micLang{height:20px;padding:0;font-size:11px;font-weight:600;line-height:1;border-radius:6px;background:#fff;color:var(--muted)}
+  button.mic{background:#fff}
+  button.mic.on{background:#fde8e8;border-color:#e9a4a4;color:#b42318;animation:pulse 1.2s ease-in-out infinite}
+  @keyframes pulse{50%{box-shadow:0 0 0 4px rgba(180,35,24,.18)}}
+  @media (prefers-reduced-motion:reduce){button.mic.on{animation:none}}
   button.attach{background:#e4ebff;border-color:#c5d3fb;color:var(--accent)}
   button.attach:hover:not(:disabled){background:#d3dfff;border-color:#a9bdf7}
   textarea{flex:1;font:inherit;resize:none;height:64px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;color:var(--ink)}
@@ -171,6 +178,10 @@
     <form id="form" class="chatform">
       <div id="strip" hidden></div>
       <div class="inputrow">
+        <div class="micgroup">
+          <button id="mic" type="button" class="iconbtn mic" title="Voice typing: click, speak, click again to stop" aria-label="Voice typing" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><line x1="12" y1="18" x2="12" y2="22"/></svg></button>
+          <button id="micLang" type="button" title="Voice typing language: click to switch between English and Hebrew" aria-label="Voice typing language">EN</button>
+        </div>
         <button id="attach" type="button" class="iconbtn attach" title="Attach images or files. You can also paste or drop them." aria-label="Attach files"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg></button>
         <input id="file" type="file" multiple hidden>
         <textarea id="input" dir="auto" placeholder="Describe what you want to build. Paste a screenshot to show an error." aria-label="Your message"></textarea>
@@ -254,6 +265,14 @@ const T = {
     err429:"Too many requests. Wait a little and press Send again.",
     errNet:"Could not reach OpenRouter. Check your internet connection and press Send again.",
     errUnknown:"I do not recognize this error. Did it happen as soon as you pressed Send, or during the reply?",
+    voiceNone:"Voice typing is not available in this browser. Use Google Chrome or Microsoft Edge, or type your message.",
+    voiceNoMic:"No microphone was found. Plug in or enable a microphone and try again, or type your message.",
+    voiceBlocked:"Microphone access is blocked. Click the lock or camera icon in the address bar, allow the microphone for this page, and try again. Also check the system privacy settings for your browser.",
+    voiceNet:"The browser's speech service could not be reached. Check your internet connection. Voice typing needs the internet.",
+    voiceNoSpeech:"No speech was heard. Check that the right microphone is selected and try again.",
+    voiceLang:l=>`The browser cannot dictate in ${l} on this computer. Switch the language with the EN/HE button or type your message.`,
+    voiceOther:"Voice typing stopped because of an error. You can try again or type your message.",
+    voicePrivacy:"Voice typing sends your voice to your browser's speech service (Google for Chrome, Microsoft for Edge). Do not dictate anything private.",
     nothingToSave:"Nothing to save yet. Have a conversation first.",
     chatSaved:f=>`Conversation saved as ${f}.`,
     memSaved:f=>`Memory saved as ${f}. It contains the summary below plus your latest code. After Reset, use Load memory to give it to a new conversation.`,
@@ -290,6 +309,14 @@ const T = {
     err429:"יותר מדי בקשות. המתינו מעט ולחצו שוב על שליחה.",
     errNet:"אין חיבור ל-OpenRouter. בדקו את חיבור האינטרנט ולחצו שוב על שליחה.",
     errUnknown:"אינני מזהה את השגיאה הזו. האם היא קרתה מיד כשלחצתם על שליחה, או באמצע התשובה?",
+    voiceNone:"הקלדה קולית אינה זמינה בדפדפן הזה. השתמשו ב-Google Chrome או ב-Microsoft Edge, או הקלידו את ההודעה.",
+    voiceNoMic:"לא נמצא מיקרופון. חברו או הפעילו מיקרופון ונסו שוב, או הקלידו את ההודעה.",
+    voiceBlocked:"הגישה למיקרופון חסומה. לחצו על סמל המנעול או המצלמה בשורת הכתובת, אפשרו את המיקרופון לדף הזה ונסו שוב. בדקו גם את הגדרות הפרטיות של המערכת עבור הדפדפן.",
+    voiceNet:"לא ניתן להגיע לשירות הדיבור של הדפדפן. בדקו את חיבור האינטרנט. הקלדה קולית דורשת אינטרנט.",
+    voiceNoSpeech:"לא נשמע דיבור. בדקו שנבחר המיקרופון הנכון ונסו שוב.",
+    voiceLang:l=>`הדפדפן אינו יכול להכתיב ב${l} במחשב הזה. החליפו שפה בכפתור EN/HE או הקלידו את ההודעה.`,
+    voiceOther:"ההקלדה הקולית נעצרה בגלל שגיאה. אפשר לנסות שוב או להקליד את ההודעה.",
+    voicePrivacy:"הקלדה קולית שולחת את הקול שלכם לשירות הדיבור של הדפדפן (Google ב-Chrome, Microsoft ב-Edge). אל תכתיבו דבר פרטי.",
     nothingToSave:"אין עדיין מה לשמור. נהלו קודם שיחה.",
     chatSaved:f=>`השיחה נשמרה בקובץ ${f}.`,
     memSaved:f=>`הזיכרון נשמר בקובץ ${f}. הוא כולל את הסיכום שלהלן ואת הקוד האחרון שלכם. אחרי Reset, השתמשו ב-Load memory כדי להעביר אותו לשיחה חדשה.`,
@@ -303,7 +330,7 @@ const T = {
 const $ = id => document.getElementById(id);
 const els = {key:$('key'),family:$('family'),other:$('other'),otherWrap:$('otherWrap'),models:$('models'),
   chat:$('chat'),codePre:$('codePre'),input:$('input'),form:$('form'),send:$('send'),stop:$('stop'),reset:$('reset'),
-  copyCode:$('copyCode'),attach:$('attach'),file:$('file'),strip:$('strip')};
+  copyCode:$('copyCode'),mic:$('mic'),micLang:$('micLang'),attach:$('attach'),file:$('file'),strip:$('strip')};
 
 let history = [];                 // user: {role,text,atts[]}  assistant: {role,text}. Only these are sent to the model.
 let notes = [];                   // errors and notices shown in the chat, never sent to the model: {at, raw, text}; "at" = number of messages before it
@@ -668,6 +695,7 @@ function toApi(m){
 }
 function setBusy(b){
   busy=b; els.send.hidden=b; els.stop.hidden=!b;
+  if(b) stopVoice(true); els.mic.disabled=b; els.micLang.disabled=b;
   els.input.disabled=b; els.reset.disabled=b; els.attach.disabled=b; els.family.disabled=b; els.other.disabled=b;
   for(const id of ['saveChat','saveMem','loadMem']) $(id).disabled=b;
 }
@@ -945,6 +973,63 @@ $('memFile').onchange=async e=>{
   infoT('memLoaded', f.name);
 };
 
+/* ---------- voice typing (browser speech recognition) ---------- */
+// This is the browser's SpeechRecognition, not the operating system's dictation: a web page cannot open Windows voice typing or macOS Dictation.
+// Chrome and Edge send the audio to Google / Microsoft servers, which is why a notice is shown on first use.
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+const VOICE_LANGS = {en:{code:'en-US', tag:'EN', name:'English'}, he:{code:'he-IL', tag:'HE', name:'Hebrew'}};
+let voiceLang = 'en', rec = null, voiceBase = '', voiceNoticed = false;
+try{ if(localStorage.getItem('or_voice')==='he') voiceLang='he'; }catch{}
+function renderVoiceLang(){ els.micLang.textContent = VOICE_LANGS[voiceLang].tag; els.micLang.title = 'Voice typing language: '+VOICE_LANGS[voiceLang].name+'. Click to switch.'; }
+const vt = (key, ...a) => trL(voiceLang, key, ...a);      // voice messages follow the dictation language
+function voiceError(key, ...a){ note(vt(key,...a)); }
+function stopVoice(discard){ if(rec){ if(discard) rec.onresult=null; try{ rec.stop(); }catch{} } }   // discard: ignore words still in flight (sending, Reset)
+function setListening(on){ els.mic.classList.toggle('on',on); els.mic.setAttribute('aria-pressed',String(on)); }
+function joinText(base, add){ add=add.trim(); if(!add) return base; return base && !/\s$/.test(base) ? base+' '+add : base+add; }
+async function startVoice(){
+  if(busy || rec) return;
+  if(!SR){ voiceError('voiceNone'); return; }
+  try{   // no input device at all? (device list works without permission; labels stay hidden until it is granted)
+    if(navigator.mediaDevices && navigator.mediaDevices.enumerateDevices){
+      const devs=await navigator.mediaDevices.enumerateDevices();
+      if(!devs.some(d=>d.kind==='audioinput')){ voiceError('voiceNoMic'); return; }
+    }
+  }catch{}
+  if(!voiceNoticed){ voiceNoticed=true; note(vt('voicePrivacy'),'',{kind:'info'}); }
+  const r=new SR(); rec=r;
+  r.lang=VOICE_LANGS[voiceLang].code; r.continuous=true; r.interimResults=true;
+  voiceBase=els.input.value;
+  let failed=false;
+  r.onstart=()=>setListening(true);
+  r.onresult=e=>{
+    let fin='', tmp='';
+    for(let i=0;i<e.results.length;i++){ const t=e.results[i][0].transcript; if(e.results[i].isFinal) fin=joinText(fin,t); else tmp=joinText(tmp,t); }
+    els.input.value=joinText(joinText(voiceBase,fin),tmp);
+    updateMeter();
+  };
+  r.onerror=e=>{
+    failed=true;
+    const c=e.error;
+    if(c==='aborted') return;
+    if(c==='not-allowed'||c==='service-not-allowed') voiceError('voiceBlocked');
+    else if(c==='audio-capture') voiceError('voiceNoMic');
+    else if(c==='network') voiceError('voiceNet');
+    else if(c==='no-speech') voiceError('voiceNoSpeech');
+    else if(c==='language-not-supported') voiceError('voiceLang',VOICE_LANGS[voiceLang].name);
+    else note(vt('voiceOther'), 'Speech error: '+c);
+  };
+  r.onend=()=>{ rec=null; setListening(false); els.input.focus(); };
+  try{ r.start(); }catch(err){ rec=null; setListening(false); note(vt('voiceOther'),'Speech error: '+(err&&err.message||err)); }
+}
+els.mic.onclick=()=>{ rec ? stopVoice() : startVoice(); };
+els.micLang.onclick=()=>{
+  voiceLang = voiceLang==='en' ? 'he' : 'en';
+  try{ localStorage.setItem('or_voice',voiceLang); }catch{}
+  renderVoiceLang();
+  if(rec){ stopVoice(); }       // the new language applies from the next press
+};
+renderVoiceLang();
+
 /* ---------- wiring ---------- */
 els.form.addEventListener('submit',e=>{e.preventDefault();sendMessage();});
 els.input.addEventListener('keydown',e=>{ if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();sendMessage();} });
@@ -953,6 +1038,7 @@ els.family.addEventListener('change',updateModelUI);
 els.other.addEventListener('input',updateModelUI);
 els.stop.onclick=()=>controller&&controller.abort();
 els.reset.onclick=()=>{
+  stopVoice(true);
   if((history.length||atts.length) && !confirm('Start over? The conversation and the code window will be cleared.')) return;
   history=[]; notes=[]; atts=[]; memory=null; renderMemChip(); calibrated=null; lastTurn=null; shownCode=null; budgetNoted=false; longNoted=false;   // session totals are deliberately kept
   renderStrip(); renderNow(); els.input.focus();

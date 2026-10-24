@@ -9,8 +9,11 @@ Open `vibe-chat.html` in Chrome or Edge. No server, no install. Camera QR scanni
 - Edit `vibe-chat.html` directly. It is the only source file. The QR decoder (jsQR 1.4.0, minified, Shift-JIS table removed) is the single long `<script>` line near the end; Kanji-mode QR codes will not decode, API-key QR codes are unaffected.
 - `npm install && npm test` runs the jsdom checks against it.
 
+## Voice typing
+The mic button (left of the paperclip) uses the browser's speech recognition, not the operating system's dictation. Chrome and Edge send the audio to Google / Microsoft servers; a notice says so on first use. The small EN/HE button under the mic picks English or Hebrew. Firefox is not supported.
+
 ## Not yet verified against a real key
-Streaming, attachments (PDF via OpenRouter file input), key test, QR scan, file downloads, and the assumption that `usage.cost` is in USD.
+Voice typing on real laptops (English and Hebrew, microphone permission when the page is opened as a local file), streaming, attachments (PDF via OpenRouter file input), key test, QR scan, file downloads, and the assumption that `usage.cost` is in USD.
 
 ## Cost board (instructor projector view)
 `cost-board.html` shows, in large type for a projector, how much money one OpenRouter key has left and how much the class has spent, updating every few seconds while students use the key.
