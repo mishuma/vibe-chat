@@ -6,6 +6,7 @@ const dom=new JSDOM(html,{runScripts:'dangerously',url:'https://localhost/',pret
   beforeParse(w){
     w.HTMLCanvasElement.prototype.getContext=()=>null;
     if(!w.TextDecoder) w.TextDecoder=TextDecoder;   // older jsdom versions do not expose it; real browsers do
+    if(!w.Blob.prototype.text) w.Blob.prototype.text=function(){ return new Promise(r=>{ const fr=new w.FileReader(); fr.onload=()=>r(fr.result); fr.readAsText(this); }); };   // same: Blob.text() in older jsdom
     w.addEventListener('error',e=>errs.push(e.message));
     w.fetch=async(url,opts)=>{ url=String(url); calls.push({url,body:opts&&opts.body});
       if(url.endsWith('/models')) return {ok:true,json:async()=>({data:[{id:'anthropic/claude-sonnet-5.5',context_length:1000000,pricing:{prompt:'0.000003',completion:'0.000015'},architecture:{input_modalities:['text','image']}}]})};
