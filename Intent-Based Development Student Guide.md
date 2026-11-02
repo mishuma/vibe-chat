@@ -1,8 +1,8 @@
 # Intent-Based Development: Student Guide
 
-Version 0.2. Made from the Teacher's Guide, version 0.2.
+Version 0.1. Made from the Teacher's Guide, version 0.1.
 
-Your teacher will tell you which section to open next. If you are working on your own, go through the sections in order.
+This guide shows you how to use vibe-chat. What you build comes from a separate activity guide. You work in a team of 1 or 2, on one laptop. Your teacher will tell you which section to open next. If you are working on your own, go through the sections in order.
 
 **How this guide is labeled:** Concept (light blue): the idea behind it · Activity (light green): what you do · Questions (light purple): things to think about · Troubleshooting (light orange): if something goes wrong · Extension (light gray): go further · Key Terms (light yellow): new words
 
@@ -12,11 +12,11 @@ Your teacher will tell you which section to open next. If you are working on you
 
 In this activity, you build a program without writing code yourself. You tell your AI coding assistant what you want in plain language. The AI writes the code. You test the code and tell the AI what went wrong. Then the AI writes a better version. You repeat this until the code does what you want.
 
-You talk to the AI in vibe-chat, a chat page that opens in your browser. The chat is on the left. The code appears on the right.
+You talk to the AI in vibe-chat, a chat page that opens in your browser. The chat is on the left. The code appears on the right. You paste the code into a testing app, where you run it. Your activity guide names the testing app.
 
 **Your job:** You describe the goal and test the result. The AI writes the code. You decide whether it does what you wanted.
 
-This way of working is called intent-based development, or vibe coding. First, get ready in section 2, Set-Up. If something goes wrong, look for the orange Troubleshooting notes at the step you are on.
+This way of working is called intent-based development, or vibe coding. If something goes wrong, look for the orange Troubleshooting notes at the step you are on.
 
 **Help:** [FILL IN: who to ask]
 
@@ -26,15 +26,15 @@ This way of working is called intent-based development, or vibe coding. First, g
 
 ### 2. Set-Up
 
-**Problem:** You need vibe-chat on your laptop, and your laptop must pass a few checks.
+**Problem:** Your team's laptop needs vibe-chat, and it must pass a few checks. Do this before the session.
 
 #### 2.1 Activity: Run the setup script
 
 **What you need**
 
-* A Mac or Windows laptop with Chrome or Edge, a camera, and internet access. Safari and Firefox may block the camera.
+* Your team's Mac or Windows laptop with Chrome or Edge, a camera, and internet access. Other browsers may block the camera.
 * vibe-chat-workshop.zip, from [FILL IN: link or location].
-* Your testing app: [FILL IN: app].
+* Anything else your activity guide lists.
 
 **Steps**
 
@@ -64,7 +64,7 @@ This way of working is called intent-based development, or vibe coding. First, g
 
 The AI reads and writes text in small chunks called tokens. Each token costs a little money. Your messages and the AI's replies both use tokens.
 
-An API key lets vibe-chat use the AI. Your team has its own key. Your teacher sets a credit limit on it. You also set your own spend limit in vibe-chat. When you reach it, vibe-chat stops sending.
+An API key lets vibe-chat use the AI. Your team has its own key. Your teacher sets a credit limit on it. Your team also sets its own spend limit in vibe-chat. When you reach it, vibe-chat stops sending.
 
 Your teacher may show token spending on the main screen, for the whole class or for each team.
 
@@ -73,7 +73,7 @@ Your teacher may show token spending on the main screen, for the whole class or 
 1. Open vibe-chat.html from your working folder.
 2. Click the camera icon and scan the QR code your teacher shows your team. Or paste the key by hand. Then click Test.
    **Your key is a secret, like a password.** Do not share it or post it.
-   **Troubleshooting: The camera is blocked or the scan fails:** Use Chrome or Edge. If it still fails, paste the key by hand.
+   **Troubleshooting: The camera is blocked or the scan fails:** Allow camera access if your browser asks. If the scan still fails, paste the key by hand.
    **Troubleshooting: Test shows a problem:** Read the message in the chat. It gives advice in English or Hebrew.
 3. Pick the model your teacher names: [FILL IN: model]. If it is not in the list, choose Other model and type its name.
 4. Open Settings and enter your spend limit: [FILL IN: dollar amount].
@@ -93,60 +93,33 @@ Your teacher may show token spending on the main screen, for the whole class or 
 
 ### 4. The Loop: Prompt, Paste, Run, Observe
 
+**Problem:** You need to know the steps you repeat, and which vibe-chat buttons to use for each one.
+
 #### 4.1 Concept: The four steps
 
-Every goal in this guide uses the same loop. Learn it once here.
+Every activity uses the same loop. Learn it once here.
 
 1. **Prompt.** Tell the AI what you want. Send your message.
 2. **Paste.** Wait for the code to finish. Click Copy code. In your testing app, replace everything with the new code. If you see errors, send them to the AI and paste the corrected code.
-3. **Run.** Run the code in your testing app.
+3. **Run.** Run the code the way your activity guide says. In some activities, you download the code to a device first.
 4. **Observe.** Compare what happened with what you wanted. If it is different, tell the AI exactly what you saw and ask for revised code. Then run the loop again.
 
-Repeat the loop until the code does what you wanted. Each step has its own section:
-
-| Step | Section |
-| :---- | :---- |
-| Prompt | 5. Prompt: Describe your goal |
-| Paste | 6. Paste: Copy the code into your testing app |
-| Run | 7. Run: Test the code |
-| Observe | 8. Observe: Tell the AI what went wrong |
+Your activity guide tells you what each step means for your task.
 
 **Rule for the whole activity:** Never change the code line by line. Every time the AI gives you a new version, replace all the code in your testing app. That way, the AI and your testing app always have the same code.
 
-#### 4.2 Questions
+#### 4.2 Activity: Prompt in vibe-chat
 
-* When you get stuck, ask yourself: Which step am I on?
-
-#### 4.3 Key Terms
-
-* **Prompt:** The message you send to an AI to tell it what you want.
-
-### 5. Prompt: Describe your goal
-
-**Problem:** You need to tell the AI clearly what you want.
-
-#### 5.1 Activity: Send your first prompt
-
-**Your first objective:** [FILL IN: objective]
-
-1. Describe your goal in the message box.
+1. Describe your goal in the message box. Your activity guide tells you what to ask for.
 2. To add an image or a file, click the paperclip. You can also paste a screenshot.
 3. Click the paper airplane to send.
-4. Wait for the AI to finish. The code appears on the right. Read the AI's answer. **Look for:** What did the AI decide on its own? Did it add anything you did not ask for? If so, ask the AI why.
+4. Wait for the AI to finish. The code appears on the right. Read the AI's answer.
    **Troubleshooting: Send is greyed out:** You reached your spend limit. Ask your teacher. Raising the limit in Settings turns Send back on and keeps your chat.
    **Troubleshooting: An error from OpenRouter appears in the chat:** Tell your teacher. Your team's key may be out of credit.
 
-**You should see:** Code in the window on the right. Your code may be different from other teams' code.
+**Starting over:** Reset conversation clears the chat and starts a new conversation. Your spending totals keep counting. Use it only when your activity guide or your teacher says so.
 
-#### 5.2 Questions
-
-* What did the AI decide that you did not ask for?
-
-### 6. Paste: Copy the code into your testing app
-
-**Problem:** The code is ready. You need to move all of it into your testing app.
-
-#### 6.1 Activity: Copy, paste, and fix errors
+#### 4.3 Activity: Paste from vibe-chat
 
 1. Wait until Copy code turns on. It stays greyed out until the code is complete. vibe-chat keeps only the latest version.
    **Troubleshooting: Copy code stays greyed out:** The AI is still writing. Wait for it to finish.
@@ -157,32 +130,12 @@ Repeat the loop until the code does what you wanted. Each step has its own secti
    Then ask: "I got these errors. Please return the complete corrected code."
 4. Replace all the code with the new version. Repeat until there are no errors.
 
-**You should see:** No errors, usually within a few rounds.
+#### 4.4 Activity: Run and Observe
 
-#### 6.2 Questions
-
-* Why does Copy code wait until the code is complete?
-
-### 7. Run: Test the code
-
-**Problem:** Your code has no errors. Now you need to see what it really does.
-
-#### 7.1 Activity: Run it
-
-1. Run the code in your testing app: [FILL IN: steps for the testing app].
-2. Let it run long enough to see a pattern, not just a few seconds.
-
-**You should see:** The code runs. It may not do what you wanted yet. That is what section 8 is for.
-
-### 8. Observe: Tell the AI what went wrong
-
-**Problem:** The code runs, but it does not do what you wanted.
-
-#### 8.1 Activity: Observe, then tell the AI
-
-1. Compare what happened with what you wanted.
-2. Send the AI this message, with your own words filled in: "The code did [what you saw]. I wanted it to do [what you expected]. Please return the complete revised code."
-3. Paste and run the new code. Test again. **Look for:** What changed after the AI revised the code?
+1. Run the code the way your activity guide says. Let it run long enough to see a pattern, not just a few seconds.
+2. Compare what happened with what you wanted.
+3. Send the AI this message, with your own words filled in: "The code did [what you saw]. I wanted it to do [what you expected]. Please return the complete revised code." Your activity guide may give you its own words for this message.
+4. Paste and run the new code. Test again. **Look for:** What changed after the AI revised the code?
 
 Be specific. Compare these:
 
@@ -190,35 +143,30 @@ Be specific. Compare these:
 | :---- | :---- |
 | It doesn't work. | When I click the button, nothing happens. I expected the score to go up by one. |
 
-#### 8.2 Questions
+#### 4.5 Questions
 
-* What did your code do the first time you tested it?
+* When you get stuck, ask yourself: Which step am I on?
 
-### 9. Memory: Save your chat and start fresh
+#### 4.6 Key Terms
 
-**Problem:** Reset conversation starts over. What does the AI keep, and what does it lose?
+* **Prompt:** The message you send to an AI to tell it what you want.
 
-#### 9.1 Concept: How the AI remembers
+### 5. Your activity
 
-vibe-chat has two buttons that show how AI memory works. Save chat downloads your whole conversation. Save memory asks the AI to write a short summary of it, called a memory file. You can load the memory file into a new conversation.
+**Problem:** You know how to use vibe-chat. Now you need something to build.
 
-#### 9.2 Extension: Save and reload a memory
+#### 5.1 Activity: Open your activity guide
 
-1. Click Save chat. Your conversation downloads as a markdown file.
-2. Click Save memory. The AI writes a memory file. This uses a few tokens.
-3. Click Reset conversation. The chat starts over. Your spending totals keep counting.
-4. Load the memory file into the new conversation. [TO CONFIRM: how students load the memory file]
-5. Ask the AI about your earlier work. **Look for:** What does the AI remember? What did it forget?
+1. Open your activity guide: [FILL IN: activity guide name].
+2. Work through it in the order your teacher gives.
+3. Keep using the vibe-chat conversation from section 3. Your activity guide tells you if you should ever start over (see 4.2).
+4. When you finish, go to section 6 of this guide.
 
-#### 9.3 Questions
+#### 5.2 Questions
 
-* What did the AI remember after you loaded the memory file? What did it forget?
+* If your teacher shows the cost board: What did your team do that used the most tokens?
 
-#### 9.4 Key Terms
-
-* **Memory file:** A short summary of a conversation that you can load into a new conversation.
-
-### 10. Summary of Learning Objectives
+### 6. Summary of Learning Objectives
 
 By the end of this activity, you can:
 
@@ -227,9 +175,35 @@ By the end of this activity, you can:
 * Give an error message back to the AI instead of guessing a fix.
 * Describe results in terms of what happened and what you expected.
 * Explain what tokens are and what uses them.
-* Explain what a memory file keeps and what is lost.
+* Optional (Appendix A): Explain what a memory file keeps and what is lost.
 
-### Appendix A: Trademarks
+Your activity guide lists more objectives for your task.
+
+### Appendix A: Optional: Saved chats and memory
+
+**Problem:** You finished early, or you want to see how an AI remembers. This part is optional.
+
+#### A.1 Concept: How the AI remembers
+
+vibe-chat has two buttons that show how AI memory works. Save chat downloads your whole conversation. Save memory asks the AI to write a short summary of it, called a memory file. You can load the memory file into a new conversation.
+
+#### A.2 Extension: Save and reload a memory
+
+1. Click Save chat. Your conversation downloads as a markdown file.
+2. Click Save memory. The AI writes a memory file. This uses a few tokens.
+3. Click Reset conversation. The chat starts over. Your spending totals keep counting.
+4. Load the memory file into the new conversation. [TO CONFIRM: how teams load the memory file]
+5. Ask the AI about your earlier work. **Look for:** What does the AI remember? What did it forget?
+
+#### A.3 Questions
+
+* What did the AI remember after you loaded the memory file? What did it forget?
+
+#### A.4 Key Terms
+
+* **Memory file:** A short summary of a conversation that you can load into a new conversation.
+
+### Appendix B: Trademarks
 
 *(Same as the Teacher's Guide.)*
 
@@ -237,9 +211,8 @@ By the end of this activity, you can:
 * OpenRouter is a trademark of OpenRouter, Inc. [VERIFY]
 * Microsoft, Windows, Edge, and PowerShell are trademarks of the Microsoft group of companies. [VERIFY]
 * GitHub and npm are trademarks of GitHub, Inc. [VERIFY]
-* Apple, Mac, and Safari are trademarks of Apple Inc., registered in the U.S. and other countries. [VERIFY]
+* Apple and Mac are trademarks of Apple Inc., registered in the U.S. and other countries. [VERIFY]
 * Google, Chrome, and Google Drive are trademarks of Google LLC. [VERIFY]
-* Firefox is a trademark of the Mozilla Foundation. [VERIFY]
 * Codex is a trademark of OpenAI. [VERIFY]
 * Cursor is a trademark of Anysphere, Inc. [VERIFY]
 * Python is a trademark of the Python Software Foundation. [VERIFY]
