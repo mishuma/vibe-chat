@@ -40,7 +40,7 @@ const chatText=()=>$('chat').textContent;
   // Hebrew conversation -> Hebrew advice
   $('input').value='בנה לי משחק'; await ev('sendMessage()'); await sleep(20);
   ok(/אין יתרה/.test(chatText()),'Hebrew conversation gets Hebrew advice');
-  const rows=[...$('chat').querySelectorAll('.row')]; ok(rows[rows.length-1].dir==='rtl','Hebrew error bubble aligned rtl');
+  const rows=[...$('chat').querySelectorAll('.row')]; ok(rows[rows.length-1].dir==='ltr' && rows[rows.length-1].querySelector('.bubble').dir==='rtl','Hebrew error bubble: row stays on the chatbot side, its text runs rtl');
   // network error
   chatMode='net'; $('input').value='hello'; await ev('sendMessage()'); await sleep(20);
   ok(/Network error/.test(chatText()) && /Could not reach OpenRouter/.test(chatText()),'network error + advice in chat');

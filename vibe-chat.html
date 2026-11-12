@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-codetheme="dark-plus">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -7,7 +7,7 @@
 <style>
   :root{
     --bg:#f6f6f4; --panel:#ffffff; --ink:#1c1c1e; --muted:#6b6b70; --line:#e2e2de;
-    --accent:#2f5bea; --user:#d9e4ff; --assistant:#ececE8; --code-bg:#14161a; --code-ink:#e6e6e6; --err:#b42318; --err-bg:#fdecea;
+    --accent:#2f5bea; --user:#d9e4ff; --assistant:#ececE8; --err:#b42318; --err-bg:#fdecea;
   }
   *{box-sizing:border-box}
   [hidden]{display:none!important}
@@ -43,7 +43,8 @@
   #chat{flex:1;overflow:auto;padding:12px}
   #chat .row{margin-bottom:10px}
   .bubble{width:fit-content;max-width:88%;padding:9px 12px;border-radius:12px;word-wrap:break-word;overflow-wrap:anywhere}
-  .bubble.user{background:var(--user)}
+  .bubble.user{background:var(--user);margin-right:auto}
+  .bubble:not(.user){margin-left:auto}
   .bubble.assistant{background:var(--assistant)}
   .bubble.error{background:var(--err-bg);color:var(--err)}
   .bubble.info{background:#e9eef6;color:var(--ink)}
@@ -88,10 +89,56 @@
   .chipx img{height:44px;max-width:80px;object-fit:cover;border-radius:4px;display:block}
   .chipx button{position:absolute;top:2px;right:2px;border:none;background:transparent;padding:0 5px;font-size:16px;line-height:1.2;color:var(--muted)}
 
-  #codeWrap{flex:1;overflow:auto;background:var(--code-bg);color:var(--code-ink)}
+  /* code colors: palettes copied from the Visual Studio Code themes Dark+, Light+ and High Contrast */
+  :root[data-codetheme="dark-plus"]{--c-bg:#1e1e1e;--c-fg:#d4d4d4;--c-com:#6a9955;--c-str:#ce9178;--c-num:#b5cea8;--c-kw:#569cd6;--c-ctl:#c586c0;--c-fn:#dcdcaa;--c-type:#4ec9b0;--c-mdh:#569cd6;--c-mdb:#569cd6;--c-mdi:#c586c0;--c-mdc:#ce9178;--c-mdl:#6796e6;--c-mdlink:#569cd6;--c-mdq:#6a9955}
+  :root[data-codetheme="light-plus"]{--c-bg:#ffffff;--c-fg:#000000;--c-com:#008000;--c-str:#a31515;--c-num:#098658;--c-kw:#0000ff;--c-ctl:#af00db;--c-fn:#795e26;--c-type:#267f99;--c-mdh:#800000;--c-mdb:#000080;--c-mdi:#800080;--c-mdc:#800000;--c-mdl:#0451a5;--c-mdlink:#0451a5;--c-mdq:#0451a5}
+  :root[data-codetheme="hc"]{--c-bg:#000000;--c-fg:#ffffff;--c-com:#7ca668;--c-str:#ce9178;--c-num:#b5cea8;--c-kw:#569cd6;--c-ctl:#c586c0;--c-fn:#dcdcaa;--c-type:#4ec9b0;--c-mdh:#6796e6;--c-mdb:#ffffff;--c-mdi:#ffffff;--c-mdc:#ce9178;--c-mdl:#569cd6;--c-mdlink:#569cd6;--c-mdq:#7ca668}
+  #codeWrap{flex:1;overflow:auto;background:var(--c-bg);color:var(--c-fg)}
   pre{margin:0;padding:12px;font:13px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre;direction:ltr;text-align:left;user-select:text;min-height:100%}
-  pre.placeholder{color:#8b909b;white-space:normal;font-family:inherit;font-size:14px}
+  pre.placeholder{color:var(--c-fg);opacity:.65;white-space:normal;font-family:inherit;font-size:14px}
+  .tk-com{color:var(--c-com)} .tk-str{color:var(--c-str)} .tk-num{color:var(--c-num)} .tk-kw{color:var(--c-kw)}
+  .tk-ctl{color:var(--c-ctl)} .tk-fn{color:var(--c-fn)} .tk-type{color:var(--c-type)}
+  .tk-mdh{color:var(--c-mdh);font-weight:bold} .tk-mdb{color:var(--c-mdb);font-weight:bold} .tk-mdi{color:var(--c-mdi);font-style:italic}
+  .tk-mdc{color:var(--c-mdc)} .tk-mdl{color:var(--c-mdl)} .tk-mdlink{color:var(--c-mdlink);text-decoration:underline} .tk-mdq{color:var(--c-mdq)}
+  .fbody pre.hl{background:var(--c-bg);color:var(--c-fg)}
   pre.writing{user-select:none}
+  /* right-hand panel: Code tab and Files tab */
+  .tabbar{margin:0;padding:0 12px;font-size:13px;border-bottom:1px solid var(--line);display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+  .tabbar [role=tab]{border:none;border-bottom:2px solid transparent;border-radius:0;background:transparent;padding:9px 4px 7px;font-weight:600;color:var(--muted)}
+  .tabbar [role=tab][aria-selected=true]{color:var(--ink);border-bottom-color:var(--accent)}
+  .badge{display:inline-block;min-width:18px;padding:0 5px;margin-left:4px;border-radius:999px;background:var(--accent);color:#fff;font-size:11px;line-height:18px;text-align:center}
+  #codeActions{display:flex;gap:8px;align-items:center}
+  #filesWrap{flex:1;overflow:auto;display:flex;flex-direction:column;background:#fafaf8}
+  #filesBar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--line);background:var(--panel);position:sticky;top:0;z-index:1}
+  #folderChip{font-size:12px;background:#e9eef6;border-radius:999px;padding:1px 4px 1px 10px;direction:ltr}
+  #folderChip button{border:none;background:transparent;padding:0 6px;font-size:15px;line-height:1.2;color:var(--muted)}
+  #filesList{padding:12px;display:flex;flex-direction:column;gap:12px}
+  .fcard{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .fcard.flash{border-color:var(--accent);box-shadow:0 0 0 3px rgba(47,91,234,.18)}
+  .fhead{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;padding:8px 10px;border-bottom:1px solid var(--line)}
+  .fname{font-weight:600;direction:ltr;overflow-wrap:anywhere}
+  .fmeta,.fstatus{font-size:12px;color:var(--muted)}
+  .fstatus{color:#1e7a3a}
+  .fbody{padding:10px;max-height:300px;overflow:auto}
+  .fbody img{max-width:100%;max-height:260px;display:block;margin:0 auto;background:#fff;border:1px solid var(--line);border-radius:6px}
+  .fbody pre{background:#f4f4f1;color:var(--ink);padding:8px;border-radius:6px;font-size:12px;white-space:pre-wrap;overflow-wrap:anywhere;min-height:0;direction:inherit;unicode-bidi:plaintext;text-align:start}
+  .fwarn{font-size:12px;color:var(--muted);margin:6px 0 0}
+  .fhint{margin:0;padding:6px 12px;border-bottom:1px solid var(--line)}
+  table.ftable{border-collapse:collapse;font-size:12px;direction:ltr}
+  .ftable th,.ftable td{border:1px solid var(--line);padding:3px 8px;text-align:left;white-space:nowrap}
+  .ftable th{background:#f0f0ec}
+  .fcard.writing .fbody{display:none}
+  .fempty{padding:24px 20px;text-align:center;color:var(--muted);font-size:14px;max-width:46ch;margin:0 auto}
+  .fideas{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:12px}
+  .fchips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+  .fchip{font-size:12px;padding:2px 10px;border-radius:999px;border:1px solid var(--accent);background:#fff;color:var(--accent);direction:ltr}
+  dialog .field select,dialog textarea{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:8px;color:var(--ink);background:#fff}
+  dialog .field select{height:38px;width:240px}
+  dialog label.check{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink);margin:6px 0 8px}
+  dialog label.check input{width:auto;height:auto;margin:0}
+  dialog textarea{width:100%;resize:vertical}
+  dialog details{margin-top:10px;font-size:13px;color:var(--muted)}
+  #promptView{margin:6px 0 0;padding:8px;min-height:0;max-height:240px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;background:#fafafa;color:var(--ink);border:1px solid var(--line);border-radius:8px}
   @media (max-width:820px){
     body{height:auto;min-height:100%} main{grid-template-columns:1fr} section{height:70vh}
     #family,#other{width:100%} header label{flex:1 1 100%}
@@ -134,6 +181,31 @@
       <input id="budget" type="number" min="0" step="0.01" inputmode="decimal" placeholder="e.g. 2.00">
     </label>
     <p>Requests to the model stop when this session has spent this much, and the colored bar at the top is full. Raise the limit at any time to continue; the conversation is kept. Leave empty for no limit of your own. OpenRouter enforces the key's own limits separately and reports them in the chat. The limit is saved in this browser; the amount spent restarts when the page is reloaded.</p>
+    <h4>How the assistant writes code</h4>
+    <label class="field">Code language
+      <select id="codeLang">
+        <option value="typescript">TypeScript</option>
+        <option value="python">Python</option>
+        <option value="javascript">JavaScript</option>
+        <option value="any">Let the model choose</option>
+      </select>
+    </label>
+    <label class="check"><input type="checkbox" id="commentsOn" checked> Add plenty of comments to the code</label>
+    <label class="field">Code colors
+      <select id="codeTheme">
+        <option value="dark-plus">Dark+ (Visual Studio Code dark)</option>
+        <option value="light-plus">Light+ (Visual Studio Code light)</option>
+        <option value="hc">High Contrast</option>
+      </select>
+    </label>
+    <label class="field">Extra instructions (optional)
+      <textarea id="extra" rows="4" dir="auto" maxlength="4000" placeholder="e.g. Explain each change in one line. Use small functions. I am a beginner."></textarea>
+    </label>
+    <p>Code language, extra instructions and the comments setting are added to the system prompt, so they are sent (and paid for) with every message and apply from the next message. With comments on, the code explains itself in the style of its language (// for TypeScript and JavaScript, # and docstrings for Python); turn it off for shorter code. Code colors only change how the code window looks, not what is copied or saved. All of these are saved in this browser. Your extra instructions take priority over the default style rules.</p>
+    <details>
+      <summary>Show the exact system prompt (optional, technical)</summary>
+      <pre id="promptView"></pre>
+    </details>
     <h4>Skill</h4>
     <p>A markdown file of instructions the model follows in every reply. It is added to the system prompt, so it is sent (and paid for) with every message, and applies from the next message. It stays loaded after Reset and after reloading this page.</p>
     <div id="skillInfo">No skill loaded.</div>
@@ -191,11 +263,27 @@
     </form>
   </section>
   <section>
-    <h2>Generated code (read-only)
+    <h2 class="tabbar" role="tablist">
+      <button id="tabCode" type="button" role="tab" aria-selected="true" aria-controls="codeWrap">Code</button>
+      <button id="tabFiles" type="button" role="tab" aria-selected="false" aria-controls="filesWrap">Files <span id="filesBadge" class="badge" hidden>0</span></button>
       <span class="spacer"></span>
-      <button id="copyCode" type="button" disabled>Copy code</button>
+      <span id="codeActions">
+        <button id="saveCode" type="button" disabled title="Save the code as a file">Save code</button>
+        <button id="copyCode" type="button" disabled>Copy code</button>
+      </span>
     </h2>
-    <div id="codeWrap"><pre id="codePre" class="placeholder">No code yet. When the model writes code, it appears here and is replaced by each new version.</pre></div>
+    <div id="codeWrap" role="tabpanel"><pre id="codePre" class="placeholder">No code yet. When the model writes code, it appears here and is replaced by each new version.</pre></div>
+    <div id="filesWrap" role="tabpanel" hidden>
+      <div id="filesBar">
+        <button id="pickFolder" type="button" title="Choose a folder once, then Save writes straight into it">Choose save folder…</button>
+        <span id="folderChip" hidden><span id="folderName"></span><button id="folderStop" type="button" title="Stop saving to this folder" aria-label="Stop saving to this folder">×</button></span>
+        <span class="spacer"></span>
+        <button id="restoreAll" type="button" hidden>Restore discarded</button>
+        <button id="saveZip" type="button" disabled>Save all as zip</button>
+      </div>
+      <p id="folderHint" class="fwarn fhint">Pick a folder <b>inside</b> Documents, such as one called vibe-chat. Chrome does not allow Documents, Desktop, Downloads or your home folder themselves. In the dialog, use New Folder, then Select.</p>
+      <div id="filesList"></div>
+    </div>
   </section>
 </main>
 
@@ -209,15 +297,41 @@ const MAX_IMAGE_SIDE = 1568;      // screenshots are downscaled to this many pix
 const MAX_PDF_BYTES = 10 * 1024 * 1024;
 const MAX_TEXT_FILE_BYTES = 500 * 1024;
 const MAX_SKILL_BYTES = 100 * 1024;
-const SYSTEM_PROMPT = `You are a coding partner for college students who are not programmers.
+// The student picks the code language in Settings. "any" lets the model choose.
+const own = (obj, key) => Object.prototype.hasOwnProperty.call(obj, key);
+const CODE_LANGS = {typescript:{label:'TypeScript',tag:'typescript',ext:'ts'}, python:{label:'Python',tag:'python',ext:'py'},
+  javascript:{label:'JavaScript',tag:'javascript',ext:'js'}, any:{label:'',tag:'',ext:'txt'}};
+const FENCE = '`'.repeat(3), FENCE4 = '`'.repeat(4);
+function codeRule(lang){
+  const one = 'Return ONE complete, runnable file in a single fenced block' +
+    ', even if only a small part changed. Never return partial snippets or "rest unchanged".';
+  const c = own(CODE_LANGS, lang) ? CODE_LANGS[lang] : CODE_LANGS.typescript;
+  if(lang==='any') return 'When code is needed, choose the language that best fits the task and say which one in your sentence before the code. ' +
+    one.replace('fenced block', 'fenced block tagged with that language');
+  return `When code is needed, write ${c.label}. ` + one.replace('fenced block', `fenced block tagged ${c.tag}`);
+}
+const SYSTEM_PROMPT_BASE = `You are a coding partner for college students who are not programmers.
 Reply in the language the student writes in. Be terse: answer only what was asked.
 Never invent facts, APIs, settings, or causes of errors. If you do not know, say so. If something is unclear, ask ONE short question instead of guessing.
-Write plain text only: short paragraphs, no markdown, no bold, no headers, no bullet symbols, no emojis, no backticks.
-Write URLs in full as plain text.
-When code is needed, write TypeScript. Return ONE complete, runnable file in a single fenced block tagged typescript,
-even if only a small part changed. Never return partial snippets or "rest unchanged". Put nothing in the fence except code
-and normal English code comments. Before the code block, write one short plain sentence saying what you did.
+Write plain text only: short paragraphs, no markdown, no bold, no headers, no bullet symbols, no emojis, no backticks. The only exceptions are the fenced blocks described below.
+Write URLs in full as plain text.`;
+const CODE_FENCE_RULE = `Put nothing in a code fence except code and normal English code comments. Before the code block, write one short plain sentence saying what you did.
 Students may paste screenshots of errors. Read them carefully, say in one sentence what is wrong, then give the full corrected file.`;
+function commentRule(lang){
+  const how = lang==='python' ? 'Use # comments, and give every function and class a docstring.'
+    : lang==='any' ? "Use that language's own comment syntax and conventions."
+    : 'Use // comments, and give every function and class a short /** */ doc comment.';
+  return `Comment the code generously, for readers who are new to programming: put a comment above each function and each major step, explain why as well as what, and keep each comment to one or two plain English lines. ${how} This applies only inside the code block; your sentences outside it stay short.`;
+}
+const FILE_RULE = `Other files: when the student asks for something that is not a program (a document, notes, a data table, a diagram or image, a README), create it as a file. Write a fenced block whose first line is "file:" followed by a short plain name with no folders, for example:
+${FENCE}file:notes.md
+(contents)
+${FENCE}
+Allowed types: .md .txt .csv .json .svg .html. For an image, write an SVG. Use one block per file. If the file's own contents contain three backticks, open and close that block with four backticks (${FENCE4}) instead. A file block is the only place markdown is allowed; keep the rest of your reply plain, and say in one sentence what the file is.
+The app shows each file in a Files tab and the student decides whether to save it. Never say or imply that a file is saved, written, or on the student's computer; only tell the student it is ready in the Files tab.`;
+const PREFS_RULE = 'The student set the preferences below in Settings. Where they conflict with the style rules above, this block takes priority, except that it can never make you say or imply that a file has been saved.';
+// Text from a skill, memory or Settings is placed between tags; remove any tag that could close or fake one of them.
+const stripPromptTags = t => String(t).replace(/<\/?\s*(skill|memory|student_preferences)\b[^>]*>/gi, '');
 // Used only for errors the app has no built-in advice for (see reportError).
 const ADVICE_PROMPT = `A student is using a chat app that calls OpenRouter, and a request just failed.
 In one or two short plain sentences, in the same language as the student's last message, say what the error means and the next step.
@@ -278,7 +392,20 @@ const T = {
     memSaved:f=>`Memory saved as ${f}. It contains the summary below plus your latest code. After Reset, use Load memory to give it to a new conversation.`,
     memLoaded:f=>`Memory loaded: ${f}. The model will use it from your next message.`,
     memBig:(f,kb)=>`${f} is larger than ${kb} KB. A memory file this large would add a high cost to every message.`,
-    memBad:f=>`${f} is empty or not a text file. Attach the markdown (.md) memory file you saved.`
+    memBad:f=>`${f} is empty or not a text file. Attach the markdown (.md) memory file you saved.`,
+    fileSaved:'Saved', fileDownloaded:'Downloaded', fileWriting:'Writing…',
+    saveInstead:f=>`The save dialog did not work, so ${f} was downloaded instead. Look in your Downloads folder.`,
+    saveFail:f=>`${f} could not be saved. Try Save again, or use Save all as zip.`,
+    folderBlocked:'This browser or computer did not allow access to that folder. Files will go to your Downloads folder instead.',
+    folderNone:'Choosing a folder works in Chrome or Edge. In this browser, Save puts files in your Downloads folder.',
+    fileRenamed:(a,b)=>`${a} already exists in that folder, so this file was saved as ${b}. Nothing was overwritten.`,
+    filesEmpty:'No files yet. Ask for something that is not a program and it appears here, ready for you to save. Nothing is written to your computer until you press Save.',
+    filesIdea1:'Write a README for this project', filesIdea2:'Make a CSV of sample data', filesIdea3:'Draw a simple logo as an image',
+    zipFail:'The zip file could not be created.',
+    previewCut:'Preview shortened. Saving writes the whole file.',
+    activeNote:'Shown as a picture or as plain text only. Open the saved file only if you trust it.',
+    activeFound:'This file contains code that would run if you opened it in a browser (it is not run here). Open the saved file only if you trust it.',
+    csvFormula:'Some cells start with = + - or @. Excel and Sheets treat those as formulas, so check them before opening the saved file.'
   },
   he:{
     needKey:"הדביקו או סרקו קודם את מפתח ה-API של OpenRouter.",
@@ -322,7 +449,20 @@ const T = {
     memSaved:f=>`הזיכרון נשמר בקובץ ${f}. הוא כולל את הסיכום שלהלן ואת הקוד האחרון שלכם. אחרי Reset, השתמשו ב-Load memory כדי להעביר אותו לשיחה חדשה.`,
     memLoaded:f=>`הזיכרון נטען: ${f}. המודל ישתמש בו מההודעה הבאה שלכם.`,
     memBig:(f,kb)=>`הקובץ ${f} גדול מ-${kb} KB. קובץ זיכרון כזה יוסיף עלות גבוהה לכל הודעה.`,
-    memBad:f=>`הקובץ ${f} ריק או שאינו קובץ טקסט. צרפו את קובץ ה-markdown (.md) ששמרתם.`
+    memBad:f=>`הקובץ ${f} ריק או שאינו קובץ טקסט. צרפו את קובץ ה-markdown (.md) ששמרתם.`,
+    fileSaved:'נשמר', fileDownloaded:'הורד', fileWriting:'כותב…',
+    saveInstead:f=>`חלון השמירה לא עבד, ולכן ${f} הורד במקומו. חפשו אותו בתיקיית ההורדות (Downloads).`,
+    saveFail:f=>`לא ניתן היה לשמור את ${f}. נסו לשמור שוב, או השתמשו ב"שמור הכול כ-zip".`,
+    folderBlocked:'הדפדפן או המחשב לא אפשרו גישה לתיקייה הזו. הקבצים יישמרו בתיקיית ההורדות (Downloads).',
+    folderNone:'בחירת תיקייה עובדת ב-Chrome או Edge. בדפדפן הזה, שמירה מורידה את הקבצים לתיקיית ההורדות (Downloads).',
+    fileRenamed:(a,b)=>`הקובץ ${a} כבר קיים בתיקייה, ולכן הקובץ הזה נשמר בשם ${b}. שום דבר לא נדרס.`,
+    filesEmpty:'אין קבצים עדיין. בקשו משהו שאינו תוכנית והוא יופיע כאן, מוכן לשמירה. שום דבר לא נכתב למחשב שלכם עד שתלחצו על שמירה.',
+    filesIdea1:'כתוב README לפרויקט הזה', filesIdea2:'צור קובץ CSV עם נתוני דוגמה', filesIdea3:'צייר לוגו פשוט כתמונה',
+    zipFail:'לא ניתן היה ליצור את קובץ ה-zip.',
+    previewCut:'התצוגה המקדימה קוצרה. השמירה כותבת את הקובץ במלואו.',
+    activeNote:'מוצג כתמונה או כטקסט רגיל בלבד. פתחו את הקובץ השמור רק אם אתם סומכים עליו.',
+    activeFound:'הקובץ מכיל קוד שיופעל אם תפתחו אותו בדפדפן (כאן הוא לא מופעל). פתחו את הקובץ השמור רק אם אתם סומכים עליו.',
+    csvFormula:'תאים מסוימים מתחילים ב-= + - או @. Excel ו-Sheets מתייחסים אליהם כנוסחאות, לכן בדקו אותם לפני פתיחת הקובץ השמור.'
   }
 };
 /* ========================================================= */
@@ -348,13 +488,17 @@ let memory = null;                // {name,text}: a memory file loaded into this
 let streaming = false;            // true only while a chat reply is streaming in
 let budget = null;                // the student's spend limit in US dollars, or null. The only limit this app enforces.
 let budgetNoted = false, longNoted = false;
+let codeLang = 'typescript';      // key of CODE_LANGS, set in Settings
+let extraText = '';               // the student's own extra instructions, set in Settings
+let commentsOn = true;            // ask for generous, language-appropriate code comments (on unless the student turns it off)
 
 // OpenRouter has no API-level "skill" parameter, so a skill is sent as part of the system message.
 function systemPrompt(){
-  let s = SYSTEM_PROMPT;
-  if(skill) s += `\n\nThe student has loaded a skill. Follow its instructions in every reply. Where the skill says nothing, the rules above still apply.\n<skill name="${skill.name}">\n${skill.text}\n</skill>`;
+  let s = [SYSTEM_PROMPT_BASE, codeRule(codeLang), commentsOn ? commentRule(codeLang) : '', CODE_FENCE_RULE, FILE_RULE].filter(Boolean).join('\n');
+  if(skill) s += `\n\nThe student has loaded a skill. Follow its instructions in every reply. Where the skill says nothing, the rules above still apply.\n<skill name="${stripPromptTags(skill.name).replace(/["<>]/g,'')}">\n${stripPromptTags(skill.text)}\n</skill>`;
   // A memory file is just text added to the system prompt. The model has no other way to remember an earlier conversation.
-  if(memory) s += `\n\nThe student loaded a memory file saved from an earlier conversation. Treat it as background about the student's project and preferences. It may be out of date: if the student says otherwise, follow the student. Use it only where relevant and do not invent details that are not in it.\n<memory>\n${memory.text}\n</memory>`;
+  if(memory) s += `\n\nThe student loaded a memory file saved from an earlier conversation. Treat it as background about the student's project and preferences. It may be out of date: if the student says otherwise, follow the student. Use it only where relevant and do not invent details that are not in it.\n<memory>\n${stripPromptTags(memory.text)}\n</memory>`;
+  if(extraText) s += `\n\n${PREFS_RULE}\n<student_preferences>\n${stripPromptTags(extraText)}\n</student_preferences>`;
   return s;
 }
 
@@ -465,32 +609,47 @@ async function loadModels(){
 }
 
 /* ---------- parsing model output ---------- */
+// Parts: {t:'text',v} | {t:'code',lang,v,open} | {t:'file',name,v,open}. A fence of N backticks closes at a line of N or more backticks (files)
+// or at the next run of N backticks (code), so a four-backtick file block can contain ordinary three-backtick fences.
 function split(text){
   const parts=[]; let i=0;
   while(true){
     const s=text.indexOf('```',i);
     if(s<0){ parts.push({t:'text',v:text.slice(i)}); break; }
     parts.push({t:'text',v:text.slice(i,s)});
-    const nl=text.indexOf('\n',s+3);
-    if(nl<0){ parts.push({t:'code',v:'',open:true}); break; }
-    const b=nl+1, e=text.indexOf('```',b);
-    if(e<0){ parts.push({t:'code',v:text.slice(b),open:true}); break; }
-    parts.push({t:'code',v:text.slice(b,e).replace(/\n$/,''),open:false});
-    i=e+3;
+    let n=3; while(text[s+n]==='`') n++;
+    const nl=text.indexOf('\n',s+n);
+    const info=text.slice(s+n, nl<0 ? text.length : nl).trim();
+    const fm=info.match(/^file:\s*(.*)$/i);
+    if(nl<0){ parts.push(fm ? {t:'file',name:'',v:'',open:true} : {t:'code',lang:'',v:'',open:true}); break; }
+    const b=nl+1;
+    if(fm){
+      const closer=new RegExp('^`{'+n+',}[ \\t]*$','gm'); closer.lastIndex=b;
+      const m=closer.exec(text);
+      if(!m){ parts.push({t:'file',name:fm[1].trim(),v:text.slice(b),open:true}); break; }
+      parts.push({t:'file',name:fm[1].trim(),v:text.slice(b,m.index).replace(/\n$/,''),open:false});
+      i=m.index+m[0].length;
+      continue;
+    }
+    const lang=info.split(/\s+/)[0].toLowerCase(), e=text.indexOf('`'.repeat(n),b);
+    if(e<0){ parts.push({t:'code',lang,v:text.slice(b),open:true}); break; }
+    parts.push({t:'code',lang,v:text.slice(b,e).replace(/\n$/,''),open:false});
+    i=e+n;
   }
   return parts;
 }
 // The code buffer = code from the most recent response that contains code.
 // While a reply streams, its code refreshes the buffer live. An unfinished block (stopped or cut off) is never kept.
-function latestCode(){
+function latestCodeBlocks(){
   for(let i=history.length-1;i>=0;i--){
     const m=history[i]; if(m.role!=='assistant') continue;
     const live = streaming && i===history.length-1;
     const blocks=split(m.text).filter(p=>p.t==='code' && (live || !p.open) && p.v.trim());
-    if(blocks.length) return blocks.map(b=>b.v).join('\n\n');
+    if(blocks.length) return blocks;
   }
-  return '';
+  return [];
 }
+const latestCode = () => latestCodeBlocks().map(b=>b.v).join('\n\n');
 // True while the model is in the middle of writing a code block: the buffer is incomplete and must not be copied.
 function writingCode(){
   const last=history[history.length-1];
@@ -521,10 +680,11 @@ function paragraphs(text, parent, link){
 function renderMessage(m,i){
   const prose = m.role==='user' ? m.text : split(m.text).filter(p=>p.t==='text').map(p=>p.v).join('\n\n');
   const typing = m.role==='assistant' && busy && i===history.length-1 && !prose.trim();
-  if(m.role==='assistant' && !prose.trim() && !typing) return null;
+  const fileNames = m.role==='assistant' ? [...new Set(split(m.text).filter(p=>p.t==='file' && !p.open && p.name).map(p=>safeFileName(p.name)))] : [];
+  if(m.role==='assistant' && !prose.trim() && !typing && !fileNames.length) return null;
   if(m.role==='user' && !prose.trim() && !(m.atts&&m.atts.length)) return null;
-  const row=el('div','row'); row.dir=dirOf(prose);
-  const b=el('div','bubble '+m.role);
+  const row=el('div','row'); row.dir='ltr';
+  const b=el('div','bubble '+m.role); b.dir=dirOf(prose);
   if(typing){ b.classList.add('typing'); for(let k=0;k<3;k++) b.appendChild(el('span')); }
   else paragraphs(prose,b,m.role==='assistant');
   if(m.atts&&m.atts.length){
@@ -535,11 +695,16 @@ function renderMessage(m,i){
     });
     b.appendChild(box);
   }
+  if(fileNames.length){
+    const box=el('div','fchips');
+    fileNames.forEach(n=>{ const c=el('button','fchip'); c.type='button'; c.textContent=n; c.onclick=()=>openFile(n); box.appendChild(c); });
+    b.appendChild(box);
+  }
   row.appendChild(b); return row;
 }
 function renderNote(n){
-  const row=el('div','row'); row.dir=dirOf(n.text||n.raw);
-  const b=el('div','bubble '+(n.kind||'error'));
+  const row=el('div','row'); row.dir='ltr';
+  const b=el('div','bubble '+(n.kind||'error')); b.dir=dirOf(n.text||n.raw);
   if(n.raw){ const p=el('p','raw'); p.dir='ltr'; p.textContent=n.raw; b.appendChild(p); }
   if(n.text) paragraphs(n.text,b,false);
   if(n.body){ const pre=el('pre','mem'); pre.dir='auto'; pre.textContent=n.body; b.appendChild(pre); }
@@ -555,11 +720,158 @@ function renderChat(){
   }
   if(near || busy) chat.scrollTop=chat.scrollHeight;
 }
+/* ---------- code colors: a small hand-written highlighter (TypeScript, JavaScript, Python, Markdown) ----------
+   highlight(code, lang) returns [kind, text] pieces whose texts always join back to the exact input.
+   The page paints them with textContent only, so model output is never parsed as HTML. */
+const HL_MAX_CHARS = 60000, HL_MAX_MD_LINE = 2000, HL_MAX_REGEX = 200;
+const HL_ALIASES = {typescript:'js', ts:'js', tsx:'js', javascript:'js', js:'js', jsx:'js', python:'py', py:'py', markdown:'md', md:'md'};
+const words = s => new Set(s.split(' '));
+const HL_WORDS = {
+  js:{ kw:words('const let var function class interface enum extends implements new typeof instanceof in of void delete this super static public private protected readonly abstract declare namespace async true false null undefined'),
+       ctl:words('if else for while do switch case break continue return throw try catch finally yield await import export from default as'),
+       types:words('string number boolean any unknown never object symbol bigint'),
+       fnAfter:words('function'), typeAfter:words('class interface enum extends implements namespace type') },
+  py:{ kw:words('def class lambda None True False global nonlocal and or not in is async'),
+       ctl:words('if elif else for while break continue return pass raise try except finally with import from as yield await assert del'),
+       types:words('int str float bool list dict set tuple bytes object'),
+       fnAfter:words('def'), typeAfter:words('class') }
+};
+const RE_WS=/\s+/y, RE_WORD=/[\p{L}_$][\p{L}\p{N}_$]*/yu, RE_PYSTR=/[rRbBuUfF]{1,2}(?=["'])/y;
+const RE_NUM=/0[xX][\da-fA-F_]+|\d[\d_]*(?:\.\d+)?(?:[eE][+-]?\d+)?/y;
+const MD_INLINE=/\*\*[^*\n]+\*\*|`[^`\n]+`|\[[^\]\n]*\]\([^)\n]*\)|\*[^*\s][^*\n]*\*/g;
+function grab(re, code, i){ re.lastIndex = i; const m = re.exec(code); return m ? m[0] : ''; }
+function tokenSink(){
+  const out = [];
+  return {
+    add(kind, text){
+      if(!text) return;
+      const last = out[out.length-1];
+      if(last && last[0]===kind) out[out.length-1] = [kind, last[1]+text]; else out.push([kind, text]);
+    },
+    done(){ return out; }
+  };
+}
+const lineEnd = (code, i) => { const e = code.indexOf('\n', i); return e<0 ? code.length : e; };
+function stringEnd(code, i, lang){
+  const q = code[i], n = code.length;
+  if(lang==='py' && code.startsWith(q.repeat(3), i)){ const e = code.indexOf(q.repeat(3), i+3); return e<0 ? n : e+3; }
+  let j = i+1;
+  while(j<n){
+    const c = code[j];
+    if(c===q) return j+1;
+    if(c==='\n' && q!=='`') return j;           // an unfinished string stops at the line break
+    j += c==='\\' ? 2 : 1;                         // a backslash escapes the next character, including a line break
+  }
+  return n;
+}
+const REGEX_CAN_START = '(,=:[!&|?{};';
+function regexEnd(code, i){
+  const end = Math.min(lineEnd(code, i), i+HL_MAX_REGEX);   // real regex literals are short; the cap keeps a failed scan cheap
+  let j = i+1, inClass = false;
+  for(; j<end; j++){
+    const c = code[j];
+    if(c==='\\') j++;
+    else if(c==='[') inClass = true;
+    else if(c===']') inClass = false;
+    else if(c==='/' && !inClass){ j++; while(/[a-z]/.test(code[j]||'')) j++; return j; }
+  }
+  return -1;                                      // no closing slash on this line: it was a division
+}
+function scanSpecial(code, i, lang, lastSig){
+  const c = code[i];
+  if(lang==='js' && code.startsWith('//', i)) return ['com', lineEnd(code, i)];
+  if(lang==='js' && code.startsWith('/*', i)){ const e = code.indexOf('*/', i+2); return ['com', e<0 ? code.length : e+2]; }
+  if(lang==='js' && c==='/' && (!lastSig || REGEX_CAN_START.includes(lastSig))){ const e = regexEnd(code, i); if(e>0) return ['str', e]; }
+  if(lang==='py' && c==='#') return ['com', lineEnd(code, i)];
+  if(c==='"' || c==="'" || (c==='`' && lang==='js')) return ['str', stringEnd(code, i, lang)];
+  return null;
+}
+function classifyWord(w, after, W, pending, isMember){
+  if(pending) return pending;
+  if(isMember) return after[0]==='(' ? 'fn' : '';   // a.from(b), x.catch(): property names are not keywords
+  if(W.ctl.has(w)) return 'ctl';
+  if(W.kw.has(w) || (w==='type' && W===HL_WORDS.js && /^\s+[A-Za-z_$]/.test(after))) return 'kw';
+  if(W.types.has(w) || /^[A-Z]\w*[a-z]/.test(w)) return 'type';
+  return after[0]==='(' ? 'fn' : '';
+}
+function scanCode(code, lang){
+  const W = HL_WORDS[lang], sink = tokenSink(), n = code.length;
+  let i = 0, pending = '', lastSig = '';        // pending: the word after def / function / class is a function or type name; lastSig: last non-space character
+  while(i<n){
+    const ws = grab(RE_WS, code, i);
+    if(ws){ sink.add('', ws); i += ws.length; continue; }
+    const prefix = lang==='py' ? grab(RE_PYSTR, code, i) : '';
+    const sp = prefix ? ['str', stringEnd(code, i+prefix.length, lang)] : scanSpecial(code, i, lang, lastSig);
+    if(sp){ sink.add(sp[0], code.slice(i, sp[1])); if(sp[0]!=='com') lastSig = code[sp[1]-1]; i = sp[1]; pending = ''; continue; }
+    const w = grab(RE_WORD, code, i);
+    if(w){
+      const kind = classifyWord(w, code.slice(i+w.length, i+w.length+40), W, pending, code[i-1]==='.');
+      sink.add(kind, w); i += w.length; lastSig = w[w.length-1];
+      pending = kind==='kw' ? (W.fnAfter.has(w) ? 'fn' : W.typeAfter.has(w) ? 'type' : '') : '';
+      continue;
+    }
+    const num = grab(RE_NUM, code, i);
+    const piece = num || code[i];
+    sink.add(num ? 'num' : '', piece); i += piece.length; pending = ''; lastSig = piece[piece.length-1];
+  }
+  return sink.done();
+}
+function mdInline(line, sink){
+  if(line.length > HL_MAX_MD_LINE){ sink.add('', line); return; }
+  let last = 0;
+  for(const m of line.matchAll(MD_INLINE)){
+    const t = m[0];
+    sink.add('', line.slice(last, m.index));
+    sink.add(t.startsWith('**') ? 'mdb' : t[0]==='`' ? 'mdc' : t[0]==='[' ? 'mdlink' : 'mdi', t);
+    last = m.index + t.length;
+  }
+  sink.add('', line.slice(last));
+}
+function mdLine(line, sink){
+  const q = line.match(/^(\s*)(>\s?)([\s\S]*)$/);
+  if(q){ sink.add('', q[1]); sink.add('mdl', q[2]); sink.add('mdq', q[3]); return; }
+  const l = line.match(/^(\s*)((?:[-*+]|\d{1,3}[.)])\s+)([\s\S]*)$/);
+  if(l){ sink.add('', l[1]); sink.add('mdl', l[2]); mdInline(l[3], sink); return; }
+  mdInline(line, sink);
+}
+function scanMarkdown(code){
+  const sink = tokenSink(); let fenced = false;
+  for(const raw of code.match(/[^\n]*\n|[^\n]+$/g) || []){
+    const nl = raw.endsWith('\n') ? '\n' : '', line = nl ? raw.slice(0,-1) : raw;
+    if(/^\s*```/.test(line)){ fenced = !fenced; sink.add('mdc', line); }
+    else if(fenced) sink.add('mdc', line);
+    else if(/^#{1,6}\s/.test(line)) sink.add('mdh', line);
+    else mdLine(line, sink);
+    sink.add('', nl);
+  }
+  return sink.done();
+}
+function highlight(code, lang){
+  const key = String(lang||'').toLowerCase(), kind = own(HL_ALIASES, key) ? HL_ALIASES[key] : '';
+  if(!code) return [];
+  if(!kind || code.length > HL_MAX_CHARS) return [['', code]];
+  return kind==='md' ? scanMarkdown(code) : scanCode(code, kind);
+}
+function renderTuples(node, tuples){
+  const frag = document.createDocumentFragment();
+  tuples.forEach(([kind, text])=>{
+    if(!kind){ frag.appendChild(document.createTextNode(text)); return; }
+    const s = el('span', 'tk-'+kind); s.textContent = text; frag.appendChild(s);
+  });
+  node.replaceChildren(frag);
+}
+// Each block is colored by its own language tag; an untagged block uses the Code language setting.
+function codeTuples(){
+  const fallback = CODE_LANGS[codeLang].tag, blocks = latestCodeBlocks();
+  if(blocks.reduce((n,b)=>n+b.v.length, 0) > HL_MAX_CHARS) return [['', latestCode()]];   // one size cap for the whole window
+  return blocks.flatMap((b,i)=>[...(i ? [['', '\n\n']] : []), ...highlight(b.v, b.lang || fallback)]);
+}
 let shownCode=null;
 function renderCode(){
   const code=latestCode(), pre=els.codePre, wrap=$('codeWrap'), writing=writingCode();
   // The button stays disabled while code is still being written, so an incomplete buffer cannot be copied.
   els.copyCode.disabled = !code || busy;
+  $('saveCode').disabled = !code || busy;
   if(!copiedFlash) els.copyCode.textContent = writing ? 'Generating code' : 'Copy code';
   pre.classList.toggle('writing', writing);
   if(code===shownCode) return;
@@ -568,7 +880,7 @@ function renderCode(){
     pre.className='placeholder';
     pre.textContent='No code yet. When the model writes code, it appears here and is replaced by each new version.';
   } else {
-    pre.className=writing?'writing':''; pre.textContent=code;
+    pre.className=writing?'writing':''; renderTuples(pre, codeTuples());
     if(busy) wrap.scrollTop=wrap.scrollHeight;
   }
 }
@@ -585,7 +897,275 @@ function renderStrip(){
 }
 let raf=0;
 function render(){ cancelAnimationFrame(raf); raf=requestAnimationFrame(renderNow); }
-function renderNow(){ renderChat(); renderCode(); updateMeter(); }
+function renderNow(){ renderChat(); renderCode(); renderFiles(); updateMeter(); }
+
+/* ---------- files the model creates (a temporary tray; nothing is written until the student presses Save) ---------- */
+// The tray is derived from the conversation: the newest version of each file name wins. Reset empties it.
+// Saving always happens in a click handler (a user gesture): the browser's own save dialog, a folder the student chose,
+// or an ordinary download. The page never writes to disk on its own, so the operating system's rules are respected.
+const FILE_EXTS = ['md','txt','csv','json','svg','html'];
+const FILE_MIME = {md:'text/markdown', txt:'text/plain', csv:'text/csv', json:'application/json', svg:'image/svg+xml', html:'text/html'};
+const EXT_BY_TAG = {typescript:'ts', ts:'ts', javascript:'js', js:'js', python:'py', py:'py', html:'html', css:'css', json:'json',
+  bash:'sh', sh:'sh', java:'java', go:'go', rust:'rs', c:'c', cpp:'cpp', ruby:'rb', php:'php', sql:'sql'};
+const RESERVED_NAME = /^(con|prn|aux|nul|conin\$|conout\$|com[1-9\u00b9\u00b2\u00b3]|lpt[1-9\u00b9\u00b2\u00b3])$/i;
+const MAX_BASE_NAME = 60, MAX_PREVIEW_ROWS = 50, MAX_PREVIEW_CHARS = 4000, FLASH_MS = 1500;
+let discarded = new Set();        // file version ids the student removed from the tray
+let fileStatus = new Map();       // file version id -> 'saved' | 'downloaded'
+let saving = new Set();           // ids with a save in progress
+let folder = null;                // {handle,name}: a folder the student chose (Chrome and Edge only)
+let activeTab = 'code', shownFilesKey = null;
+
+// Model output is untrusted: keep only a plain file name with an allowed extension.
+function safeFileName(raw){
+  const last = String(raw||'').split(/[\\/]/).pop();
+  const clean = last.replace(/[\u0000-\u001f\u007f-\u009f\u00ad\u061c\u180e\u200b-\u200f\u2028-\u202e\u2060-\u206f\u2800\ufeff<>:"|?*]/g,'').trim().replace(/\s+/g,'-').replace(/^\.+/,'');
+  const dot = clean.lastIndexOf('.');
+  let base = (dot>0 ? clean.slice(0,dot) : clean).replace(/[. ]+$/,'').slice(0,MAX_BASE_NAME);
+  const ext = dot>0 ? clean.slice(dot+1).toLowerCase() : '';
+  if(!base) base = 'file';
+  if(RESERVED_NAME.test(base.split('.')[0].trim())) base = '_'+base;
+  return base + '.' + (FILE_EXTS.includes(ext) ? ext : 'txt');
+}
+function trayFiles(){
+  const byName = new Map();
+  history.forEach((m,i)=>{
+    if(m.role!=='assistant') return;
+    const live = streaming && i===history.length-1;
+    split(m.text).forEach(p=>{
+      if(p.t!=='file' || (p.open && (!live || !p.name))) return;     // an unfinished block is never kept
+      const name = safeFileName(p.name);
+      byName.set(name.toLowerCase(), {name, text:p.v, open:p.open, id:i+':'+name});
+    });
+  });
+  return [...byName.values()];
+}
+const visibleFiles = () => trayFiles().filter(f=>!discarded.has(f.id));
+const unsavedCount = () => visibleFiles().filter(f=>!f.open && !fileStatus.has(f.id)).length;
+
+// Excel opens a CSV as a legacy code page unless it starts with a byte-order mark, which garbles Hebrew.
+const fileBody = (ext, text) => ext==='csv' ? '\ufeff'+text : text;
+
+function sizeLabel(text){
+  const n = new Blob([text]).size;
+  return n<1024 ? n+' B' : (n/1024).toFixed(1)+' KB';
+}
+function parseCsv(text, maxRows){
+  const rows=[]; let row=[], cell='', quoted=false, cut=false;
+  const endRow = () => { row.push(cell); cell=''; if(row.length>1 || row[0]!=='') rows.push(row); row=[]; };
+  for(let i=0;i<text.length;i++){
+    const ch=text[i];
+    if(quoted){
+      if(ch!=='"') cell+=ch;
+      else if(text[i+1]==='"'){ cell+='"'; i++; }
+      else quoted=false;
+    } else if(ch==='"') quoted=true;
+    else if(ch===','){ row.push(cell); cell=''; }
+    else if(ch==='\n' || ch==='\r'){ if(ch==='\r' && text[i+1]==='\n') i++; endRow(); if(rows.length>maxRows){ cut=true; break; } }
+    else cell+=ch;
+  }
+  if(!cut && (cell!=='' || row.length)) endRow();
+  return {rows:rows.slice(0,maxRows), cut:cut || rows.length>maxRows};
+}
+function textPre(text){ const pre=el('pre'); pre.dir='auto'; pre.textContent=text; return pre; }
+function markdownPre(text){ const pre=el('pre','hl'); pre.dir='auto'; renderTuples(pre, highlight(text,'markdown')); return pre; }
+function csvTable(text){
+  const {rows,cut} = parseCsv(text, MAX_PREVIEW_ROWS);
+  const t = el('table','ftable');
+  rows.forEach((r,ri)=>{ const tr_=el('tr'); r.forEach(c=>{ const td=el(ri===0?'th':'td'); td.textContent=c; tr_.appendChild(td); }); t.appendChild(tr_); });
+  return {node:t, cut};
+}
+// SVG is only ever shown through an <img> (which cannot run scripts); HTML is only ever shown as text.
+const CSV_FORMULA = /^[=+\-@\t\r]/, PLAIN_NUMBER = /^[+-]?\d+([.,]\d+)?$/;
+const hasCsvFormula = text => parseCsv(text, Infinity).rows.some(r=>r.some(c=>CSV_FORMULA.test(c) && !PLAIN_NUMBER.test(c)));
+const hasActiveContent = text => /<script|<iframe|<object|<embed|<foreignObject|\son[a-z]+\s*=|javascript:/i.test(text);
+function preview(f){
+  const ext = f.name.split('.').pop(), box = el('div');
+  let cut = ext!=='svg' && f.text.length > MAX_PREVIEW_CHARS;
+  if(ext==='csv'){ const t=csvTable(f.text); box.appendChild(t.node); cut = t.cut; }
+  else if(ext==='svg'){
+    const im=el('img'); im.alt=f.name; im.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(f.text);
+    im.onerror=()=>im.replaceWith(textPre(f.text.slice(0,MAX_PREVIEW_CHARS)));
+    box.appendChild(im);
+  } else if(ext==='md') box.appendChild(markdownPre(f.text.slice(0,MAX_PREVIEW_CHARS)));
+  else box.appendChild(textPre(f.text.slice(0,MAX_PREVIEW_CHARS)));
+  if(cut){ const p=el('p','fwarn'); p.textContent=tr('previewCut'); box.appendChild(p); }
+  if(ext==='html' || ext==='svg'){ const p=el('p','fwarn'); p.textContent=tr(hasActiveContent(f.text) ? 'activeFound' : 'activeNote'); box.appendChild(p); }
+  if(ext==='csv' && hasCsvFormula(f.text)){ const p=el('p','fwarn'); p.textContent=tr('csvFormula'); box.appendChild(p); }
+  return box;
+}
+function fileCard(f){
+  const status = fileStatus.get(f.id);
+  const c = el('div','fcard'+(f.open?' writing':'')); c.dataset.name = f.name;
+  const head = el('div','fhead');
+  const nm = el('span','fname'); nm.textContent = f.name;
+  const meta = el('span','fmeta'); meta.textContent = f.open ? tr('fileWriting') : sizeLabel(f.text);
+  const st = el('span','fstatus'); if(status) st.textContent = tr(status==='saved' ? 'fileSaved' : 'fileDownloaded');
+  const save = el('button','fsave primary'); save.type='button'; save.textContent='Save'; save.disabled=f.open;
+  save.title = 'Save this file to your computer';
+  save.onclick = () => saveFile(f);
+  const drop = el('button','fdiscard'); drop.type='button'; drop.textContent='Discard'; drop.title='Remove this file from the list';
+  drop.onclick = () => { discarded.add(f.id); renderNow(); };
+  head.append(nm, meta, st, el('span','spacer'), save, drop);
+  const body = el('div','fbody'); if(!f.open) body.appendChild(preview(f));
+  c.append(head, body);
+  return c;
+}
+function emptyFiles(){
+  const d = el('div','fempty'); d.textContent = tr('filesEmpty');
+  const ideas = el('div','fideas');
+  for(const k of ['filesIdea1','filesIdea2','filesIdea3']){
+    const b=el('button'); b.type='button'; b.textContent=tr(k);
+    b.onclick=()=>{ if(busy) return; if(!els.input.value.trim()) els.input.value=tr(k); els.input.focus(); updateMeter(); };
+    ideas.appendChild(b);
+  }
+  d.appendChild(ideas); return d;
+}
+function renderTabs(){
+  const files = activeTab==='files';
+  $('tabCode').setAttribute('aria-selected', String(!files)); $('tabFiles').setAttribute('aria-selected', String(files));
+  $('codeWrap').hidden = files; $('filesWrap').hidden = !files; $('codeActions').hidden = files;
+}
+function showTab(t){ activeTab=t; renderTabs(); }
+function renderFiles(){
+  const all = trayFiles(), shown = all.filter(f=>!discarded.has(f.id)), hiddenCount = all.length - shown.length;
+  $('filesBadge').textContent = String(shown.length); $('filesBadge').hidden = !shown.length;
+  $('saveZip').disabled = !shown.some(f=>!f.open);
+  $('restoreAll').hidden = !hiddenCount;
+  $('folderHint').hidden = !!folder || typeof window.showDirectoryPicker!=='function';
+  $('folderChip').hidden = !folder; $('folderName').textContent = folder ? 'Folder: '+folder.name : '';
+  $('pickFolder').textContent = folder ? 'Change folder…' : 'Choose save folder…';
+  const key = [curLang(), hiddenCount, ...shown.map(f=>[f.id,f.text.length,f.open?1:0,fileStatus.get(f.id)||''].join('|'))].join('\n');
+  if(key===shownFilesKey) return;
+  shownFilesKey = key;
+  const list = $('filesList');
+  list.replaceChildren(...(shown.length ? shown.map(fileCard) : [emptyFiles()]));
+}
+function openFile(name){
+  showTab('files');
+  const c = [...$('filesList').querySelectorAll('.fcard')].find(x=>x.dataset.name===name);
+  if(!c) return;
+  if(c.scrollIntoView) c.scrollIntoView({block:'nearest'});
+  c.classList.add('flash'); setTimeout(()=>c.classList.remove('flash'), FLASH_MS);
+}
+// After a reply: files only -> show the Files tab; code -> show the Code tab.
+function autoTab(){
+  const last = history[history.length-1];
+  if(!last || last.role!=='assistant') return;
+  const parts = split(last.text);
+  if(parts.some(p=>p.t==='code' && !p.open && p.v.trim())) showTab('code');
+  else if(parts.some(p=>p.t==='file' && !p.open)) showTab('files');
+}
+
+/* saving */
+async function freeName(dir, name){
+  const dot = name.lastIndexOf('.'), base = name.slice(0,dot), ext = name.slice(dot);
+  for(let n=1;n<100;n++){
+    const candidate = n===1 ? name : `${base} (${n})${ext}`;
+    try{ await dir.getFileHandle(candidate); }
+    catch(e){ if(e && e.name==='NotFoundError') return candidate; throw e; }      // it does not exist yet: this name is free
+  }
+  throw new Error('too many copies of '+name);
+}
+async function writeHandle(handle, text){ const w=await handle.createWritable(); await w.write(text); await w.close(); }
+// Returns 'saved', 'downloaded', or null if the student cancelled. Never overwrites an existing file in a chosen folder.
+async function saveText(name, rawText, ext){
+  const mime = FILE_MIME[ext] || 'text/plain', text = fileBody(ext, rawText);
+  try{
+    if(folder){
+      const got = await freeName(folder.handle, name);
+      await writeHandle(await folder.handle.getFileHandle(got,{create:true}), text);
+      if(got!==name) noteT('fileRenamed', name, got);
+      return 'saved';
+    }
+    if(typeof window.showSaveFilePicker==='function'){
+      const h = await window.showSaveFilePicker({suggestedName:name, types:[{description:name, accept:{[mime]:['.'+ext]}}]});
+      await writeHandle(h, text);
+      return 'saved';
+    }
+  }catch(e){
+    if(e && e.name==='AbortError') return null;
+    if(folder){ folder=null; noteT('saveFail', name); return null; }   // the folder is gone or no longer allowed: drop it so the next Save asks again
+    download(name, text, mime+';charset=utf-8'); noteT('saveInstead', name); return 'downloaded';
+  }
+  download(name, text, mime+';charset=utf-8'); return 'downloaded';
+}
+async function saveFile(f){
+  if(f.open || saving.has(f.id)) return;
+  saving.add(f.id);
+  try{ const r = await saveText(f.name, f.text, f.name.split('.').pop()); if(r) fileStatus.set(f.id, r); }
+  finally{ saving.delete(f.id); renderNow(); }
+}
+async function pickFolder(){
+  if(typeof window.showDirectoryPicker!=='function'){ noteT('folderNone'); return; }
+  try{ const handle = await window.showDirectoryPicker({mode:'readwrite', id:'vibe-chat-save', startIn:'documents'}); folder = {handle, name:handle.name}; }
+  catch(e){ if(!(e && e.name==='AbortError')) noteT('folderBlocked'); }
+  renderNow();
+}
+
+/* zip: a minimal store-only archive, so several files can be saved in one step with no library */
+const CRC_TABLE = (()=>{ const t=new Uint32Array(256); for(let n=0;n<256;n++){ let c=n; for(let k=0;k<8;k++) c = c&1 ? 0xEDB88320^(c>>>1) : c>>>1; t[n]=c>>>0; } return t; })();
+function crc32(bytes){ let c=0xFFFFFFFF; for(let i=0;i<bytes.length;i++) c = CRC_TABLE[(c^bytes[i])&0xFF]^(c>>>8); return (c^0xFFFFFFFF)>>>0; }
+function dosStamp(d){
+  return {time:(d.getHours()<<11)|(d.getMinutes()<<5)|(d.getSeconds()>>1), date:((Math.max(1980,d.getFullYear())-1980)<<9)|((d.getMonth()+1)<<5)|d.getDate()};
+}
+function zipBytes(files){
+  const enc = new TextEncoder(), when = dosStamp(new Date()), parts = [], entries = [];
+  let offset = 0;
+  for(const f of files){
+    const name = enc.encode(f.name), data = enc.encode(fileBody(f.name.split('.').pop(), f.text)), crc = crc32(data);
+    const h = new DataView(new ArrayBuffer(30));
+    h.setUint32(0,0x04034b50,true); h.setUint16(4,20,true); h.setUint16(6,0x0800,true); h.setUint16(8,0,true);
+    h.setUint16(10,when.time,true); h.setUint16(12,when.date,true); h.setUint32(14,crc,true);
+    h.setUint32(18,data.length,true); h.setUint32(22,data.length,true); h.setUint16(26,name.length,true); h.setUint16(28,0,true);
+    parts.push(new Uint8Array(h.buffer), name, data);
+    entries.push({name, crc, size:data.length, offset});
+    offset += 30 + name.length + data.length;
+  }
+  const dirStart = offset;
+  for(const e of entries){
+    const c = new DataView(new ArrayBuffer(46));
+    c.setUint32(0,0x02014b50,true); c.setUint16(4,20,true); c.setUint16(6,20,true); c.setUint16(8,0x0800,true); c.setUint16(10,0,true);
+    c.setUint16(12,when.time,true); c.setUint16(14,when.date,true); c.setUint32(16,e.crc,true);
+    c.setUint32(20,e.size,true); c.setUint32(24,e.size,true); c.setUint16(28,e.name.length,true);
+    c.setUint32(42,e.offset,true);
+    parts.push(new Uint8Array(c.buffer), e.name);
+    offset += 46 + e.name.length;
+  }
+  const end = new DataView(new ArrayBuffer(22));
+  end.setUint32(0,0x06054b50,true); end.setUint16(8,entries.length,true); end.setUint16(10,entries.length,true);
+  end.setUint32(12,offset-dirStart,true); end.setUint32(16,dirStart,true);
+  parts.push(new Uint8Array(end.buffer));
+  const out = new Uint8Array(offset + 22); let at = 0;
+  for(const p of parts){ out.set(p, at); at += p.length; }
+  return out;
+}
+
+function codeExt(){
+  const first = latestCodeBlocks()[0], tag = first ? first.lang : '';
+  if(own(EXT_BY_TAG, tag)) return EXT_BY_TAG[tag];
+  return codeLang==='any' || !own(CODE_LANGS, codeLang) ? 'txt' : CODE_LANGS[codeLang].ext;
+}
+$('tabCode').onclick = () => showTab('code');
+$('tabFiles').onclick = () => showTab('files');
+$('restoreAll').onclick = () => { discarded.clear(); renderNow(); };
+$('pickFolder').onclick = pickFolder;
+$('folderStop').onclick = () => { folder = null; renderNow(); };
+$('saveZip').onclick = () => {
+  const files = visibleFiles().filter(f=>!f.open);
+  if(!files.length) return;
+  try{ download('vibe-chat-files-'+stamp()+'.zip', zipBytes(files), 'application/zip'); files.forEach(f=>fileStatus.set(f.id,'downloaded')); }
+  catch{ noteT('zipFail'); }
+  renderNow();
+};
+$('saveCode').onclick = async () => {
+  const code = latestCode(); if(!code || busy) return;
+  const ext = codeExt(), r = await saveText('program.'+ext, code, ext);
+  if(!r) return;
+  const b = $('saveCode'); b.textContent = tr(r==='saved' ? 'fileSaved' : 'fileDownloaded');
+  setTimeout(()=>{ b.textContent='Save code'; }, FLASH_MS);
+};
+// The tray is temporary: warn before the page is closed with files that were never saved.
+window.addEventListener('beforeunload', e => { if(unsavedCount()>0){ e.preventDefault(); e.returnValue=''; } });
 
 /* ---------- attachments ---------- */
 const readDataUrl = f => new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=()=>rej({t:'readFail',a:[f.name]}); r.readAsDataURL(f); });
@@ -697,7 +1277,7 @@ function setBusy(b){
   busy=b; els.send.hidden=b; els.stop.hidden=!b;
   if(b) stopVoice(true); els.mic.disabled=b; els.micLang.disabled=b;
   els.input.disabled=b; els.reset.disabled=b; els.attach.disabled=b; els.family.disabled=b; els.other.disabled=b;
-  for(const id of ['saveChat','saveMem','loadMem']) $(id).disabled=b;
+  for(const id of ['saveChat','saveMem','loadMem','pickFolder']) $(id).disabled=b;
 }
 
 async function sendMessage(){
@@ -754,7 +1334,7 @@ async function sendMessage(){
     if(gotAny) finishTurn(null, inEst, model);
     else { history.pop(); history.pop(); els.input.value=text; atts=sendAtts; renderStrip(); }   // restore so nothing is lost
   }finally{
-    setBusy(false); streaming=false; controller=null; renderNow(); els.input.focus();
+    setBusy(false); streaming=false; controller=null; if(gotAny) autoTab(); renderNow(); els.input.focus();
   }
   afterTurnNotes();
   if(failure) await reportError(failure, text);
@@ -875,7 +1455,7 @@ function renderSkillInfo(){
   $('skillClear').hidden = !skill;
   $('skillPick').textContent = skill ? 'Replace skill file…' : 'Attach skill file…';
 }
-$('settings').onclick=()=>$('dlg').showModal();
+$('settings').onclick=()=>{ $('promptView').textContent=systemPrompt(); $('dlg').showModal(); };
 $('skillPick').onclick=()=>$('skillFile').click();
 $('skillClear').onclick=()=>setSkill(null);
 $('skillFile').onchange=async e=>{
@@ -900,10 +1480,60 @@ $('budget').addEventListener('input',e=>{
   renderNow();
 });
 
+/* ---------- prompt settings: code language and extra instructions ---------- */
+const MAX_EXTRA_CHARS = 4000;
+function changePrompt(apply){
+  const before = est(systemPrompt());
+  apply();
+  if(calibrated) calibrated.tokens = Math.max(0, calibrated.tokens + est(systemPrompt()) - before);   // keep the context count consistent
+  $('promptView').textContent = systemPrompt();
+  updateMeter();
+}
+function setCodeLang(v){
+  const next = own(CODE_LANGS, v) ? v : 'typescript';
+  changePrompt(()=>{ codeLang = next; });
+  try{ next==='typescript' ? localStorage.removeItem('or_lang') : localStorage.setItem('or_lang',next); }catch{}
+  if(next==='typescript' && $('codeLang').value!==next) $('codeLang').value=next;
+}
+function setExtra(v){
+  const next = String(v||'').trim().slice(0,MAX_EXTRA_CHARS);
+  changePrompt(()=>{ extraText = next; });
+  try{ next ? localStorage.setItem('or_extra',next) : localStorage.removeItem('or_extra'); }catch{}
+}
+function setComments(on){
+  const next = Boolean(on);
+  changePrompt(()=>{ commentsOn = next; });
+  try{ next ? localStorage.removeItem('or_comments') : localStorage.setItem('or_comments','0'); }catch{}
+  if($('commentsOn').checked!==next) $('commentsOn').checked = next;
+}
+const CODE_THEMES = {'dark-plus':'Dark+', 'light-plus':'Light+', hc:'High Contrast'}, DEFAULT_THEME = 'dark-plus';
+function setCodeTheme(v){
+  const next = own(CODE_THEMES, v) ? v : DEFAULT_THEME;
+  document.documentElement.dataset.codetheme = next;
+  try{ next===DEFAULT_THEME ? localStorage.removeItem('or_theme') : localStorage.setItem('or_theme',next); }catch{}
+  if($('codeTheme').value!==next) $('codeTheme').value = next;
+}
+function loadPrefs(){
+  let theme = DEFAULT_THEME;
+  try{
+    const l=localStorage.getItem('or_lang'); codeLang = own(CODE_LANGS, l) ? l : 'typescript';
+    extraText = (localStorage.getItem('or_extra')||'').slice(0,MAX_EXTRA_CHARS);
+    commentsOn = localStorage.getItem('or_comments') !== '0';
+    theme = localStorage.getItem('or_theme');
+  }catch{}
+  $('codeLang').value = codeLang; $('extra').value = extraText; $('commentsOn').checked = commentsOn;
+  setCodeTheme(theme);
+  $('promptView').textContent = systemPrompt();
+}
+$('codeLang').addEventListener('change',e=>{ setCodeLang(e.target.value); shownCode=null; renderNow(); });
+$('extra').addEventListener('input',e=>setExtra(e.target.value));
+$('commentsOn').addEventListener('change',e=>setComments(e.target.checked));
+$('codeTheme').addEventListener('change',e=>setCodeTheme(e.target.value));
+
 /* ---------- save conversation, save and load memory ---------- */
 const stamp = () => new Date().toISOString().slice(0,16).replace(/[-:]/g,'').replace('T','-');
-function download(name, text){
-  const url=URL.createObjectURL(new Blob([text],{type:'text/markdown;charset=utf-8'}));
+function download(name, data, mime){
+  const url=URL.createObjectURL(new Blob([data],{type:mime||'text/markdown;charset=utf-8'}));
   const a=document.createElement('a'); a.href=url; a.download=name; document.body.appendChild(a); a.click(); a.remove();
   setTimeout(()=>URL.revokeObjectURL(url),2000);
 }
@@ -932,7 +1562,7 @@ $('saveMem').onclick=async()=>{
   if(!model){ noteT('needModel'); return; }
   setBusy(true);
   try{
-    const prior = memory ? `Existing memory to update:\n<memory>\n${memory.text}\n</memory>\n\n` : '';
+    const prior = memory ? `Existing memory to update:\n<memory>\n${stripPromptTags(memory.text)}\n</memory>\n\n` : '';
     const r=await fetch(API+'/chat/completions',{method:'POST',headers:headers(key),body:JSON.stringify({
       model, stream:false, max_tokens:700, usage:{include:true},
       messages:[{role:'system',content:MEMORY_PROMPT},{role:'user',content:`${prior}Conversation:\n${transcript()}`}]
@@ -1039,8 +1669,9 @@ els.other.addEventListener('input',updateModelUI);
 els.stop.onclick=()=>controller&&controller.abort();
 els.reset.onclick=()=>{
   stopVoice(true);
-  if((history.length||atts.length) && !confirm('Start over? The conversation and the code window will be cleared.')) return;
+  if((history.length||atts.length) && !confirm('Start over? The conversation, the code window and any unsaved files will be cleared.')) return;
   history=[]; notes=[]; atts=[]; memory=null; renderMemChip(); calibrated=null; lastTurn=null; shownCode=null; budgetNoted=false; longNoted=false;   // session totals are deliberately kept
+  discarded=new Set(); fileStatus=new Map(); shownFilesKey=null; showTab('code');
   renderStrip(); renderNow(); els.input.focus();
 };
 try{
@@ -1049,7 +1680,7 @@ try{
   els.other.value=localStorage.getItem('or_other')||'';
 }catch{}
 if(!els.family.value) els.family.value='sonnet';
-loadSavedSkill(); loadBudget(); updateModelUI(); loadModels(); renderNow();
+loadSavedSkill(); loadPrefs(); loadBudget(); updateModelUI(); loadModels(); renderNow();
 </script>
 <!-- QR decoder: jsQR 1.4.0 (https://github.com/cozmo/jsQR), Apache-2.0 license, minified; the Shift-JIS (Japanese Kanji) table is removed because API-key QR codes never use it. Inlined so this page works offline from a single file. -->
 <script>!function(o,e){"object"==typeof exports&&"object"==typeof module?module.exports=e():"function"==typeof define&&define.amd?define([],e):"object"==typeof exports?exports.jsQR=e():o.jsQR=e()}("undefined"!=typeof self?self:this,function(){return function(o){var e={};function r(t){if(e[t])return e[t].exports;var c=e[t]={i:t,l:!1,exports:{}};return o[t].call(c.exports,c,c.exports,r),c.l=!0,c.exports}return r.m=o,r.c=e,r.d=function(o,e,t){r.o(o,e)||Object.defineProperty(o,e,{configurable:!1,enumerable:!0,get:t})},r.n=function(o){var e=o&&o.__esModule?function(){return o.default}:function(){return o};return r.d(e,"a",e),e},r.o=function(o,e){return Object.prototype.hasOwnProperty.call(o,e)},r.p="",r(r.s=3)}([function(o,e,r){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var t=function(){function o(o,e){this.width=e,this.height=o.length/e,this.data=o}return o.createEmpty=function(e,r){return new o(new Uint8ClampedArray(e*r),e)},o.prototype.get=function(o,e){return!(o<0||o>=this.width||e<0||e>=this.height)&&!!this.data[e*this.width+o]},o.prototype.set=function(o,e,r){this.data[e*this.width+o]=r?1:0},o.prototype.setRegion=function(o,e,r,t,c){for(var s=e;s<e+t;s++)for(var a=o;a<o+r;a++)this.set(a,s,!!c)},o}();e.BitMatrix=t},function(o,e,r){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var t=r(2);e.addOrSubtractGF=function(o,e){return o^e};var c=function(){function o(o,e,r){this.primitive=o,this.size=e,this.generatorBase=r,this.expTable=new Array(this.size),this.logTable=new Array(this.size);for(var c=1,s=0;s<this.size;s++)this.expTable[s]=c,(c*=2)>=this.size&&(c=(c^this.primitive)&this.size-1);for(s=0;s<this.size-1;s++)this.logTable[this.expTable[s]]=s;this.zero=new t.default(this,Uint8ClampedArray.from([0])),this.one=new t.default(this,Uint8ClampedArray.from([1]))}return o.prototype.multiply=function(o,e){return 0===o||0===e?0:this.expTable[(this.logTable[o]+this.logTable[e])%(this.size-1)]},o.prototype.inverse=function(o){if(0===o)throw new Error("Can't invert 0");return this.expTable[this.size-this.logTable[o]-1]},o.prototype.buildMonomial=function(o,e){if(o<0)throw new Error("Invalid monomial degree less than 0");if(0===e)return this.zero;var r=new Uint8ClampedArray(o+1);return r[0]=e,new t.default(this,r)},o.prototype.log=function(o){if(0===o)throw new Error("Can't take log(0)");return this.logTable[o]},o.prototype.exp=function(o){return this.expTable[o]},o}();e.default=c},function(o,e,r){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var t=r(1),c=function(){function o(o,e){if(0===e.length)throw new Error("No coefficients.");this.field=o;var r=e.length;if(r>1&&0===e[0]){for(var t=1;t<r&&0===e[t];)t++;if(t===r)this.coefficients=o.zero.coefficients;else{this.coefficients=new Uint8ClampedArray(r-t);for(var c=0;c<this.coefficients.length;c++)this.coefficients[c]=e[t+c]}}else this.coefficients=e}return o.prototype.degree=function(){return this.coefficients.length-1},o.prototype.isZero=function(){return 0===this.coefficients[0]},o.prototype.getCoefficient=function(o){return this.coefficients[this.coefficients.length-1-o]},o.prototype.addOrSubtract=function(e){var r;if(this.isZero())return e;if(e.isZero())return this;var c=this.coefficients,s=e.coefficients;c.length>s.length&&(c=(r=[s,c])[0],s=r[1]);for(var a=new Uint8ClampedArray(s.length),n=s.length-c.length,d=0;d<n;d++)a[d]=s[d];for(d=n;d<s.length;d++)a[d]=t.addOrSubtractGF(c[d-n],s[d]);return new o(this.field,a)},o.prototype.multiply=function(e){if(0===e)return this.field.zero;if(1===e)return this;for(var r=this.coefficients.length,t=new Uint8ClampedArray(r),c=0;c<r;c++)t[c]=this.field.multiply(this.coefficients[c],e);return new o(this.field,t)},o.prototype.multiplyPoly=function(e){if(this.isZero()||e.isZero())return this.field.zero;for(var r=this.coefficients,c=r.length,s=e.coefficients,a=s.length,n=new Uint8ClampedArray(c+a-1),d=0;d<c;d++)for(var l=r[d],i=0;i<a;i++)n[d+i]=t.addOrSubtractGF(n[d+i],this.field.multiply(l,s[i]));return new o(this.field,n)},o.prototype.multiplyByMonomial=function(e,r){if(e<0)throw new Error("Invalid degree less than 0");if(0===r)return this.field.zero;for(var t=this.coefficients.length,c=new Uint8ClampedArray(t+e),s=0;s<t;s++)c[s]=this.field.multiply(this.coefficients[s],r);return new o(this.field,c)},o.prototype.evaluateAt=function(o){var e=0;if(0===o)return this.getCoefficient(0);var r=this.coefficients.length;if(1===o)return this.coefficients.forEach(function(o){e=t.addOrSubtractGF(e,o)}),e;e=this.coefficients[0];for(var c=1;c<r;c++)e=t.addOrSubtractGF(this.field.multiply(o,e),this.coefficients[c]);return e},o}();e.default=c},function(o,e,r){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var t=r(4),c=r(5),s=r(11),a=r(12);function n(o){var e=a.locate(o);if(!e)return null;for(var r=0,t=e;r<t.length;r++){var n=t[r],d=s.extract(o,n),l=c.decode(d.matrix);if(l)return{binaryData:l.bytes,data:l.text,chunks:l.chunks,version:l.version,location:{topRightCorner:d.mappingFunction(n.dimension,0),topLeftCorner:d.mappingFunction(0,0),bottomRightCorner:d.mappingFunction(n.dimension,n.dimension),bottomLeftCorner:d.mappingFunction(0,n.dimension),topRightFinderPattern:n.topRight,topLeftFinderPattern:n.topLeft,bottomLeftFinderPattern:n.bottomLeft,bottomRightAlignmentPattern:n.alignmentPattern}}}return null}var d={inversionAttempts:"attemptBoth"};function l(o,e,r,c){void 0===c&&(c={});var s=d;Object.keys(s||{}).forEach(function(o){s[o]=c[o]||s[o]});var a="attemptBoth"===s.inversionAttempts||"invertFirst"===s.inversionAttempts,l="onlyInvert"===s.inversionAttempts||"invertFirst"===s.inversionAttempts,i=t.binarize(o,e,r,a),B=i.binarized,k=i.inverted,u=n(l?k:B);return u||"attemptBoth"!==s.inversionAttempts&&"invertFirst"!==s.inversionAttempts||(u=n(l?B:k)),u}l.default=l,e.default=l},function(o,e,r){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var t=r(0);function c(o,e,r){return o<e?e:o>r?r:o}var s=function(){function o(o,e){this.width=o,this.data=new Uint8ClampedArray(o*e)}return o.prototype.get=function(o,e){return this.data[e*this.width+o]},o.prototype.set=function(o,e,r){this.data[e*this.width+o]=r},o}();e.binarize=function(o,e,r,a){if(o.length!==e*r*4)throw new Error("Malformed data passed to binarizer.");for(var n=new s(e,r),d=0;d<e;d++)for(var l=0;l<r;l++){var i=o[4*(l*e+d)+0],B=o[4*(l*e+d)+1],k=o[4*(l*e+d)+2];n.set(d,l,.2126*i+.7152*B+.0722*k)}for(var u=Math.ceil(e/8),C=Math.ceil(r/8),m=new s(u,C),f=0;f<C;f++)for(var w=0;w<u;w++){var P=0,v=1/0,h=0;for(l=0;l<8;l++)for(d=0;d<8;d++){var y=n.get(8*w+d,8*f+l);P+=y,v=Math.min(v,y),h=Math.max(h,y)}var p=P/Math.pow(8,2);if(h-v<=24&&(p=v/2,f>0&&w>0)){var b=(m.get(w,f-1)+2*m.get(w-1,f)+m.get(w-1,f-1))/4;v<b&&(p=b)}m.set(w,f,p)}var g=t.BitMatrix.createEmpty(e,r),x=null;for(a&&(x=t.BitMatrix.createEmpty(e,r)),f=0;f<C;f++)for(w=0;w<u;w++){for(var M=c(w,2,u-3),L=c(f,2,C-3),N=(P=0,-2);N<=2;N++)for(var I=-2;I<=2;I++)P+=m.get(M+N,L+I);var O=P/25;for(N=0;N<8;N++)for(I=0;I<8;I++){d=8*w+N,l=8*f+I;var z=n.get(d,l);g.set(d,l,z<=O),a&&x.set(d,l,!(z<=O))}}return a?{binarized:g,inverted:x}:{binarized:g}}},function(o,e,r){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var t=r(0),c=r(6),s=r(9),a=r(10);function n(o,e){for(var r=o^e,t=0;r;)t++,r&=r-1;return t}function d(o,e){return e<<1|o}var l=[{bits:21522,formatInfo:{errorCorrectionLevel:1,dataMask:0}},{bits:20773,formatInfo:{errorCorrectionLevel:1,dataMask:1}},{bits:24188,formatInfo:{errorCorrectionLevel:1,dataMask:2}},{bits:23371,formatInfo:{errorCorrectionLevel:1,dataMask:3}},{bits:17913,formatInfo:{errorCorrectionLevel:1,dataMask:4}},{bits:16590,formatInfo:{errorCorrectionLevel:1,dataMask:5}},{bits:20375,formatInfo:{errorCorrectionLevel:1,dataMask:6}},{bits:19104,formatInfo:{errorCorrectionLevel:1,dataMask:7}},{bits:30660,formatInfo:{errorCorrectionLevel:0,dataMask:0}},{bits:29427,formatInfo:{errorCorrectionLevel:0,dataMask:1}},{bits:32170,formatInfo:{errorCorrectionLevel:0,dataMask:2}},{bits:30877,formatInfo:{errorCorrectionLevel:0,dataMask:3}},{bits:26159,formatInfo:{errorCorrectionLevel:0,dataMask:4}},{bits:25368,formatInfo:{errorCorrectionLevel:0,dataMask:5}},{bits:27713,formatInfo:{errorCorrectionLevel:0,dataMask:6}},{bits:26998,formatInfo:{errorCorrectionLevel:0,dataMask:7}},{bits:5769,formatInfo:{errorCorrectionLevel:3,dataMask:0}},{bits:5054,formatInfo:{errorCorrectionLevel:3,dataMask:1}},{bits:7399,formatInfo:{errorCorrectionLevel:3,dataMask:2}},{bits:6608,formatInfo:{errorCorrectionLevel:3,dataMask:3}},{bits:1890,formatInfo:{errorCorrectionLevel:3,dataMask:4}},{bits:597,formatInfo:{errorCorrectionLevel:3,dataMask:5}},{bits:3340,formatInfo:{errorCorrectionLevel:3,dataMask:6}},{bits:2107,formatInfo:{errorCorrectionLevel:3,dataMask:7}},{bits:13663,formatInfo:{errorCorrectionLevel:2,dataMask:0}},{bits:12392,formatInfo:{errorCorrectionLevel:2,dataMask:1}},{bits:16177,formatInfo:{errorCorrectionLevel:2,dataMask:2}},{bits:14854,formatInfo:{errorCorrectionLevel:2,dataMask:3}},{bits:9396,formatInfo:{errorCorrectionLevel:2,dataMask:4}},{bits:8579,formatInfo:{errorCorrectionLevel:2,dataMask:5}},{bits:11994,formatInfo:{errorCorrectionLevel:2,dataMask:6}},{bits:11245,formatInfo:{errorCorrectionLevel:2,dataMask:7}}],i=[function(o){return(o.y+o.x)%2==0},function(o){return o.y%2==0},function(o){return o.x%3==0},function(o){return(o.y+o.x)%3==0},function(o){return(Math.floor(o.y/2)+Math.floor(o.x/3))%2==0},function(o){return o.x*o.y%2+o.x*o.y%3==0},function(o){return(o.y*o.x%2+o.y*o.x%3)%2==0},function(o){return((o.y+o.x)%2+o.y*o.x%3)%2==0}];function B(o,e,r){for(var c=i[r.dataMask],s=o.height,a=function(o){var e=17+4*o.versionNumber,r=t.BitMatrix.createEmpty(e,e);r.setRegion(0,0,9,9,!0),r.setRegion(e-8,0,8,9,!0),r.setRegion(0,e-8,9,8,!0);for(var c=0,s=o.alignmentPatternCenters;c<s.length;c++)for(var a=s[c],n=0,d=o.alignmentPatternCenters;n<d.length;n++){var l=d[n];6===a&&6===l||6===a&&l===e-7||a===e-7&&6===l||r.setRegion(a-2,l-2,5,5,!0)}return r.setRegion(6,9,1,e-17,!0),r.setRegion(9,6,e-17,1,!0),o.versionNumber>6&&(r.setRegion(e-11,0,3,6,!0),r.setRegion(0,e-11,6,3,!0)),r}(e),n=[],l=0,B=0,k=!0,u=s-1;u>0;u-=2){6===u&&u--;for(var C=0;C<s;C++)for(var m=k?s-1-C:C,f=0;f<2;f++){var w=u-f;if(!a.get(w,m)){B++;var P=o.get(w,m);c({y:m,x:w})&&(P=!P),l=d(P,l),8===B&&(n.push(l),B=0,l=0)}}k=!k}return n}function k(o){var e=function(o){var e=o.height,r=Math.floor((e-17)/4);if(r<=6)return a.VERSIONS[r-1];for(var t=0,c=5;c>=0;c--)for(var s=e-9;s>=e-11;s--)t=d(o.get(s,c),t);var l=0;for(s=5;s>=0;s--)for(c=e-9;c>=e-11;c--)l=d(o.get(s,c),l);for(var i,B=1/0,k=0,u=a.VERSIONS;k<u.length;k++){var C=u[k];if(C.infoBits===t||C.infoBits===l)return C;var m=n(t,C.infoBits);m<B&&(i=C,B=m),(m=n(l,C.infoBits))<B&&(i=C,B=m)}return B<=3?i:void 0}(o);if(!e)return null;var r=function(o){for(var e=0,r=0;r<=8;r++)6!==r&&(e=d(o.get(r,8),e));for(var t=7;t>=0;t--)6!==t&&(e=d(o.get(8,t),e));var c=o.height,s=0;for(t=c-1;t>=c-7;t--)s=d(o.get(8,t),s);for(r=c-8;r<c;r++)s=d(o.get(r,8),s);for(var a=1/0,i=null,B=0,k=l;B<k.length;B++){var u=k[B],C=u.bits,m=u.formatInfo;if(C===e||C===s)return m;var f=n(e,C);f<a&&(i=m,a=f),e!==s&&(f=n(s,C))<a&&(i=m,a=f)}return a<=3?i:null}(o);if(!r)return null;var t=function(o,e,r){var t=e.errorCorrectionLevels[r],c=[],s=0;if(t.ecBlocks.forEach(function(o){for(var e=0;e<o.numBlocks;e++)c.push({numDataCodewords:o.dataCodewordsPerBlock,codewords:[]}),s+=o.dataCodewordsPerBlock+t.ecCodewordsPerBlock}),o.length<s)return null;o=o.slice(0,s);for(var a=t.ecBlocks[0].dataCodewordsPerBlock,n=0;n<a;n++)for(var d=0,l=c;d<l.length;d++)l[d].codewords.push(o.shift());if(t.ecBlocks.length>1){var i=t.ecBlocks[0].numBlocks,B=t.ecBlocks[1].numBlocks;for(n=0;n<B;n++)c[i+n].codewords.push(o.shift())}for(;o.length>0;)for(var k=0,u=c;k<u.length;k++)u[k].codewords.push(o.shift());return c}(B(o,e,r),e,r.errorCorrectionLevel);if(!t)return null;for(var i=t.reduce(function(o,e){return o+e.numDataCodewords},0),k=new Uint8ClampedArray(i),u=0,C=0,m=t;C<m.length;C++){var f=m[C],w=s.decode(f.codewords,f.codewords.length-f.numDataCodewords);if(!w)return null;for(var P=0;P<f.numDataCodewords;P++)k[u++]=w[P]}try{return c.decode(k,e.versionNumber)}catch(o){return null}}e.decode=function(o){if(null==o)return null;var e=k(o);if(e)return e;for(var r=0;r<o.width;r++)for(var t=r+1;t<o.height;t++)o.get(r,t)!==o.get(t,r)&&(o.set(r,t,!o.get(r,t)),o.set(t,r,!o.get(t,r)));return k(o)}},function(o,e,r){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var t,c,s=r(7),a=r(8);function n(o,e){for(var r=[],t="",c=[10,12,14][e],s=o.readBits(c);s>=3;){if((l=o.readBits(10))>=1e3)throw new Error("Invalid numeric value above 999");var a=Math.floor(l/100),n=Math.floor(l/10)%10,d=l%10;r.push(48+a,48+n,48+d),t+=a.toString()+n.toString()+d.toString(),s-=3}if(2===s){if((l=o.readBits(7))>=100)throw new Error("Invalid numeric value above 99");a=Math.floor(l/10),n=l%10;r.push(48+a,48+n),t+=a.toString()+n.toString()}else if(1===s){var l;if((l=o.readBits(4))>=10)throw new Error("Invalid numeric value above 9");r.push(48+l),t+=l.toString()}return{bytes:r,text:t}}!function(o){o.Numeric="numeric",o.Alphanumeric="alphanumeric",o.Byte="byte",o.Kanji="kanji",o.ECI="eci"}(t=e.Mode||(e.Mode={})),function(o){o[o.Terminator=0]="Terminator",o[o.Numeric=1]="Numeric",o[o.Alphanumeric=2]="Alphanumeric",o[o.Byte=4]="Byte",o[o.Kanji=8]="Kanji",o[o.ECI=7]="ECI"}(c||(c={}));var d=["0","1","2","3","4","5","6","7","8","9","A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"," ","$","%","*","+","-",".","/",":"];function l(o,e){for(var r=[],t="",c=[9,11,13][e],s=o.readBits(c);s>=2;){var a=o.readBits(11),n=Math.floor(a/45),l=a%45;r.push(d[n].charCodeAt(0),d[l].charCodeAt(0)),t+=d[n]+d[l],s-=2}if(1===s){n=o.readBits(6);r.push(d[n].charCodeAt(0)),t+=d[n]}return{bytes:r,text:t}}function i(o,e){for(var r=[],t="",c=[8,16,16][e],s=o.readBits(c),a=0;a<s;a++){var n=o.readBits(8);r.push(n)}try{t+=decodeURIComponent(r.map(function(o){return"%"+("0"+o.toString(16)).substr(-2)}).join(""))}catch(o){}return{bytes:r,text:t}}function B(o,e){for(var r=[],t="",c=[8,10,12][e],s=o.readBits(c),n=0;n<s;n++){var d=o.readBits(13),l=Math.floor(d/192)<<8|d%192;l+=l<7936?33088:49472,r.push(l>>8,255&l),t+=String.fromCharCode(a.shiftJISTable[l])}return{bytes:r,text:t}}e.decode=function(o,e){for(var r,a,d,k,u=new s.BitStream(o),C=e<=9?0:e<=26?1:2,m={text:"",bytes:[],chunks:[],version:e};u.available()>=4;){var f=u.readBits(4);if(f===c.Terminator)return m;if(f===c.ECI)0===u.readBits(1)?m.chunks.push({type:t.ECI,assignmentNumber:u.readBits(7)}):0===u.readBits(1)?m.chunks.push({type:t.ECI,assignmentNumber:u.readBits(14)}):0===u.readBits(1)?m.chunks.push({type:t.ECI,assignmentNumber:u.readBits(21)}):m.chunks.push({type:t.ECI,assignmentNumber:-1});else if(f===c.Numeric){var w=n(u,C);m.text+=w.text,(r=m.bytes).push.apply(r,w.bytes),m.chunks.push({type:t.Numeric,text:w.text})}else if(f===c.Alphanumeric){var P=l(u,C);m.text+=P.text,(a=m.bytes).push.apply(a,P.bytes),m.chunks.push({type:t.Alphanumeric,text:P.text})}else if(f===c.Byte){var v=i(u,C);m.text+=v.text,(d=m.bytes).push.apply(d,v.bytes),m.chunks.push({type:t.Byte,bytes:v.bytes,text:v.text})}else if(f===c.Kanji){var h=B(u,C);m.text+=h.text,(k=m.bytes).push.apply(k,h.bytes),m.chunks.push({type:t.Kanji,bytes:h.bytes,text:h.text})}}if(0===u.available()||0===u.readBits(u.available()))return m}},function(o,e,r){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var t=function(){function o(o){this.byteOffset=0,this.bitOffset=0,this.bytes=o}return o.prototype.readBits=function(o){if(o<1||o>32||o>this.available())throw new Error("Cannot read "+o.toString()+" bits");var e=0;if(this.bitOffset>0){var r=8-this.bitOffset,t=o<r?o:r,c=255>>8-t<<(s=r-t);e=(this.bytes[this.byteOffset]&c)>>s,o-=t,this.bitOffset+=t,8===this.bitOffset&&(this.bitOffset=0,this.byteOffset++)}if(o>0){for(;o>=8;)e=e<<8|255&this.bytes[this.byteOffset],this.byteOffset++,o-=8;if(o>0){var s;c=255>>(s=8-o)<<s;e=e<<o|(this.bytes[this.byteOffset]&c)>>s,this.bitOffset+=o}}return e},o.prototype.available=function(){return 8*(this.bytes.length-this.byteOffset)-this.bitOffset},o}();e.BitStream=t},function(o,e,r){"use strict";Object.defineProperty(e,"__esModule",{value:!0}),e.shiftJISTable={}},function(o,e,r){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var t=r(1),c=r(2);e.decode=function(o,e){var r=new Uint8ClampedArray(o.length);r.set(o);for(var s=new t.default(285,256,0),a=new c.default(s,r),n=new Uint8ClampedArray(e),d=!1,l=0;l<e;l++){var i=a.evaluateAt(s.exp(l+s.generatorBase));n[n.length-1-l]=i,0!==i&&(d=!0)}if(!d)return r;var B=new c.default(s,n),k=function(o,e,r,t){var c;e.degree()<r.degree()&&(e=(c=[r,e])[0],r=c[1]);for(var s=e,a=r,n=o.zero,d=o.one;a.degree()>=t/2;){var l=s,i=n;if(n=d,(s=a).isZero())return null;a=l;for(var B=o.zero,k=s.getCoefficient(s.degree()),u=o.inverse(k);a.degree()>=s.degree()&&!a.isZero();){var C=a.degree()-s.degree(),m=o.multiply(a.getCoefficient(a.degree()),u);B=B.addOrSubtract(o.buildMonomial(C,m)),a=a.addOrSubtract(s.multiplyByMonomial(C,m))}if(d=B.multiplyPoly(n).addOrSubtract(i),a.degree()>=s.degree())return null}var f=d.getCoefficient(0);if(0===f)return null;var w=o.inverse(f);return[d.multiply(w),a.multiply(w)]}(s,s.buildMonomial(e,1),B,e);if(null===k)return null;var u=function(o,e){var r=e.degree();if(1===r)return[e.getCoefficient(1)];for(var t=new Array(r),c=0,s=1;s<o.size&&c<r;s++)0===e.evaluateAt(s)&&(t[c]=o.inverse(s),c++);return c!==r?null:t}(s,k[0]);if(null==u)return null;for(var C=function(o,e,r){for(var c=r.length,s=new Array(c),a=0;a<c;a++){for(var n=o.inverse(r[a]),d=1,l=0;l<c;l++)a!==l&&(d=o.multiply(d,t.addOrSubtractGF(1,o.multiply(r[l],n))));s[a]=o.multiply(e.evaluateAt(n),o.inverse(d)),0!==o.generatorBase&&(s[a]=o.multiply(s[a],n))}return s}(s,k[1],u),m=0;m<u.length;m++){var f=r.length-1-s.log(u[m]);if(f<0)return null;r[f]=t.addOrSubtractGF(r[f],C[m])}return r}},function(o,e,r){"use strict";Object.defineProperty(e,"__esModule",{value:!0}),e.VERSIONS=[{infoBits:null,versionNumber:1,alignmentPatternCenters:[],errorCorrectionLevels:[{ecCodewordsPerBlock:7,ecBlocks:[{numBlocks:1,dataCodewordsPerBlock:19}]},{ecCodewordsPerBlock:10,ecBlocks:[{numBlocks:1,dataCodewordsPerBlock:16}]},{ecCodewordsPerBlock:13,ecBlocks:[{numBlocks:1,dataCodewordsPerBlock:13}]},{ecCodewordsPerBlock:17,ecBlocks:[{numBlocks:1,dataCodewordsPerBlock:9}]}]},{infoBits:null,versionNumber:2,alignmentPatternCenters:[6,18],errorCorrectionLevels:[{ecCodewordsPerBlock:10,ecBlocks:[{numBlocks:1,dataCodewordsPerBlock:34}]},{ecCodewordsPerBlock:16,ecBlocks:[{numBlocks:1,dataCodewordsPerBlock:28}]},{ecCodewordsPerBlock:22,ecBlocks:[{numBlocks:1,dataCodewordsPerBlock:22}]},{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:1,dataCodewordsPerBlock:16}]}]},{infoBits:null,versionNumber:3,alignmentPatternCenters:[6,22],errorCorrectionLevels:[{ecCodewordsPerBlock:15,ecBlocks:[{numBlocks:1,dataCodewordsPerBlock:55}]},{ecCodewordsPerBlock:26,ecBlocks:[{numBlocks:1,dataCodewordsPerBlock:44}]},{ecCodewordsPerBlock:18,ecBlocks:[{numBlocks:2,dataCodewordsPerBlock:17}]},{ecCodewordsPerBlock:22,ecBlocks:[{numBlocks:2,dataCodewordsPerBlock:13}]}]},{infoBits:null,versionNumber:4,alignmentPatternCenters:[6,26],errorCorrectionLevels:[{ecCodewordsPerBlock:20,ecBlocks:[{numBlocks:1,dataCodewordsPerBlock:80}]},{ecCodewordsPerBlock:18,ecBlocks:[{numBlocks:2,dataCodewordsPerBlock:32}]},{ecCodewordsPerBlock:26,ecBlocks:[{numBlocks:2,dataCodewordsPerBlock:24}]},{ecCodewordsPerBlock:16,ecBlocks:[{numBlocks:4,dataCodewordsPerBlock:9}]}]},{infoBits:null,versionNumber:5,alignmentPatternCenters:[6,30],errorCorrectionLevels:[{ecCodewordsPerBlock:26,ecBlocks:[{numBlocks:1,dataCodewordsPerBlock:108}]},{ecCodewordsPerBlock:24,ecBlocks:[{numBlocks:2,dataCodewordsPerBlock:43}]},{ecCodewordsPerBlock:18,ecBlocks:[{numBlocks:2,dataCodewordsPerBlock:15},{numBlocks:2,dataCodewordsPerBlock:16}]},{ecCodewordsPerBlock:22,ecBlocks:[{numBlocks:2,dataCodewordsPerBlock:11},{numBlocks:2,dataCodewordsPerBlock:12}]}]},{infoBits:null,versionNumber:6,alignmentPatternCenters:[6,34],errorCorrectionLevels:[{ecCodewordsPerBlock:18,ecBlocks:[{numBlocks:2,dataCodewordsPerBlock:68}]},{ecCodewordsPerBlock:16,ecBlocks:[{numBlocks:4,dataCodewordsPerBlock:27}]},{ecCodewordsPerBlock:24,ecBlocks:[{numBlocks:4,dataCodewordsPerBlock:19}]},{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:4,dataCodewordsPerBlock:15}]}]},{infoBits:31892,versionNumber:7,alignmentPatternCenters:[6,22,38],errorCorrectionLevels:[{ecCodewordsPerBlock:20,ecBlocks:[{numBlocks:2,dataCodewordsPerBlock:78}]},{ecCodewordsPerBlock:18,ecBlocks:[{numBlocks:4,dataCodewordsPerBlock:31}]},{ecCodewordsPerBlock:18,ecBlocks:[{numBlocks:2,dataCodewordsPerBlock:14},{numBlocks:4,dataCodewordsPerBlock:15}]},{ecCodewordsPerBlock:26,ecBlocks:[{numBlocks:4,dataCodewordsPerBlock:13},{numBlocks:1,dataCodewordsPerBlock:14}]}]},{infoBits:34236,versionNumber:8,alignmentPatternCenters:[6,24,42],errorCorrectionLevels:[{ecCodewordsPerBlock:24,ecBlocks:[{numBlocks:2,dataCodewordsPerBlock:97}]},{ecCodewordsPerBlock:22,ecBlocks:[{numBlocks:2,dataCodewordsPerBlock:38},{numBlocks:2,dataCodewordsPerBlock:39}]},{ecCodewordsPerBlock:22,ecBlocks:[{numBlocks:4,dataCodewordsPerBlock:18},{numBlocks:2,dataCodewordsPerBlock:19}]},{ecCodewordsPerBlock:26,ecBlocks:[{numBlocks:4,dataCodewordsPerBlock:14},{numBlocks:2,dataCodewordsPerBlock:15}]}]},{infoBits:39577,versionNumber:9,alignmentPatternCenters:[6,26,46],errorCorrectionLevels:[{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:2,dataCodewordsPerBlock:116}]},{ecCodewordsPerBlock:22,ecBlocks:[{numBlocks:3,dataCodewordsPerBlock:36},{numBlocks:2,dataCodewordsPerBlock:37}]},{ecCodewordsPerBlock:20,ecBlocks:[{numBlocks:4,dataCodewordsPerBlock:16},{numBlocks:4,dataCodewordsPerBlock:17}]},{ecCodewordsPerBlock:24,ecBlocks:[{numBlocks:4,dataCodewordsPerBlock:12},{numBlocks:4,dataCodewordsPerBlock:13}]}]},{infoBits:42195,versionNumber:10,alignmentPatternCenters:[6,28,50],errorCorrectionLevels:[{ecCodewordsPerBlock:18,ecBlocks:[{numBlocks:2,dataCodewordsPerBlock:68},{numBlocks:2,dataCodewordsPerBlock:69}]},{ecCodewordsPerBlock:26,ecBlocks:[{numBlocks:4,dataCodewordsPerBlock:43},{numBlocks:1,dataCodewordsPerBlock:44}]},{ecCodewordsPerBlock:24,ecBlocks:[{numBlocks:6,dataCodewordsPerBlock:19},{numBlocks:2,dataCodewordsPerBlock:20}]},{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:6,dataCodewordsPerBlock:15},{numBlocks:2,dataCodewordsPerBlock:16}]}]},{infoBits:48118,versionNumber:11,alignmentPatternCenters:[6,30,54],errorCorrectionLevels:[{ecCodewordsPerBlock:20,ecBlocks:[{numBlocks:4,dataCodewordsPerBlock:81}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:1,dataCodewordsPerBlock:50},{numBlocks:4,dataCodewordsPerBlock:51}]},{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:4,dataCodewordsPerBlock:22},{numBlocks:4,dataCodewordsPerBlock:23}]},{ecCodewordsPerBlock:24,ecBlocks:[{numBlocks:3,dataCodewordsPerBlock:12},{numBlocks:8,dataCodewordsPerBlock:13}]}]},{infoBits:51042,versionNumber:12,alignmentPatternCenters:[6,32,58],errorCorrectionLevels:[{ecCodewordsPerBlock:24,ecBlocks:[{numBlocks:2,dataCodewordsPerBlock:92},{numBlocks:2,dataCodewordsPerBlock:93}]},{ecCodewordsPerBlock:22,ecBlocks:[{numBlocks:6,dataCodewordsPerBlock:36},{numBlocks:2,dataCodewordsPerBlock:37}]},{ecCodewordsPerBlock:26,ecBlocks:[{numBlocks:4,dataCodewordsPerBlock:20},{numBlocks:6,dataCodewordsPerBlock:21}]},{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:7,dataCodewordsPerBlock:14},{numBlocks:4,dataCodewordsPerBlock:15}]}]},{infoBits:55367,versionNumber:13,alignmentPatternCenters:[6,34,62],errorCorrectionLevels:[{ecCodewordsPerBlock:26,ecBlocks:[{numBlocks:4,dataCodewordsPerBlock:107}]},{ecCodewordsPerBlock:22,ecBlocks:[{numBlocks:8,dataCodewordsPerBlock:37},{numBlocks:1,dataCodewordsPerBlock:38}]},{ecCodewordsPerBlock:24,ecBlocks:[{numBlocks:8,dataCodewordsPerBlock:20},{numBlocks:4,dataCodewordsPerBlock:21}]},{ecCodewordsPerBlock:22,ecBlocks:[{numBlocks:12,dataCodewordsPerBlock:11},{numBlocks:4,dataCodewordsPerBlock:12}]}]},{infoBits:58893,versionNumber:14,alignmentPatternCenters:[6,26,46,66],errorCorrectionLevels:[{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:3,dataCodewordsPerBlock:115},{numBlocks:1,dataCodewordsPerBlock:116}]},{ecCodewordsPerBlock:24,ecBlocks:[{numBlocks:4,dataCodewordsPerBlock:40},{numBlocks:5,dataCodewordsPerBlock:41}]},{ecCodewordsPerBlock:20,ecBlocks:[{numBlocks:11,dataCodewordsPerBlock:16},{numBlocks:5,dataCodewordsPerBlock:17}]},{ecCodewordsPerBlock:24,ecBlocks:[{numBlocks:11,dataCodewordsPerBlock:12},{numBlocks:5,dataCodewordsPerBlock:13}]}]},{infoBits:63784,versionNumber:15,alignmentPatternCenters:[6,26,48,70],errorCorrectionLevels:[{ecCodewordsPerBlock:22,ecBlocks:[{numBlocks:5,dataCodewordsPerBlock:87},{numBlocks:1,dataCodewordsPerBlock:88}]},{ecCodewordsPerBlock:24,ecBlocks:[{numBlocks:5,dataCodewordsPerBlock:41},{numBlocks:5,dataCodewordsPerBlock:42}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:5,dataCodewordsPerBlock:24},{numBlocks:7,dataCodewordsPerBlock:25}]},{ecCodewordsPerBlock:24,ecBlocks:[{numBlocks:11,dataCodewordsPerBlock:12},{numBlocks:7,dataCodewordsPerBlock:13}]}]},{infoBits:68472,versionNumber:16,alignmentPatternCenters:[6,26,50,74],errorCorrectionLevels:[{ecCodewordsPerBlock:24,ecBlocks:[{numBlocks:5,dataCodewordsPerBlock:98},{numBlocks:1,dataCodewordsPerBlock:99}]},{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:7,dataCodewordsPerBlock:45},{numBlocks:3,dataCodewordsPerBlock:46}]},{ecCodewordsPerBlock:24,ecBlocks:[{numBlocks:15,dataCodewordsPerBlock:19},{numBlocks:2,dataCodewordsPerBlock:20}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:3,dataCodewordsPerBlock:15},{numBlocks:13,dataCodewordsPerBlock:16}]}]},{infoBits:70749,versionNumber:17,alignmentPatternCenters:[6,30,54,78],errorCorrectionLevels:[{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:1,dataCodewordsPerBlock:107},{numBlocks:5,dataCodewordsPerBlock:108}]},{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:10,dataCodewordsPerBlock:46},{numBlocks:1,dataCodewordsPerBlock:47}]},{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:1,dataCodewordsPerBlock:22},{numBlocks:15,dataCodewordsPerBlock:23}]},{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:2,dataCodewordsPerBlock:14},{numBlocks:17,dataCodewordsPerBlock:15}]}]},{infoBits:76311,versionNumber:18,alignmentPatternCenters:[6,30,56,82],errorCorrectionLevels:[{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:5,dataCodewordsPerBlock:120},{numBlocks:1,dataCodewordsPerBlock:121}]},{ecCodewordsPerBlock:26,ecBlocks:[{numBlocks:9,dataCodewordsPerBlock:43},{numBlocks:4,dataCodewordsPerBlock:44}]},{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:17,dataCodewordsPerBlock:22},{numBlocks:1,dataCodewordsPerBlock:23}]},{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:2,dataCodewordsPerBlock:14},{numBlocks:19,dataCodewordsPerBlock:15}]}]},{infoBits:79154,versionNumber:19,alignmentPatternCenters:[6,30,58,86],errorCorrectionLevels:[{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:3,dataCodewordsPerBlock:113},{numBlocks:4,dataCodewordsPerBlock:114}]},{ecCodewordsPerBlock:26,ecBlocks:[{numBlocks:3,dataCodewordsPerBlock:44},{numBlocks:11,dataCodewordsPerBlock:45}]},{ecCodewordsPerBlock:26,ecBlocks:[{numBlocks:17,dataCodewordsPerBlock:21},{numBlocks:4,dataCodewordsPerBlock:22}]},{ecCodewordsPerBlock:26,ecBlocks:[{numBlocks:9,dataCodewordsPerBlock:13},{numBlocks:16,dataCodewordsPerBlock:14}]}]},{infoBits:84390,versionNumber:20,alignmentPatternCenters:[6,34,62,90],errorCorrectionLevels:[{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:3,dataCodewordsPerBlock:107},{numBlocks:5,dataCodewordsPerBlock:108}]},{ecCodewordsPerBlock:26,ecBlocks:[{numBlocks:3,dataCodewordsPerBlock:41},{numBlocks:13,dataCodewordsPerBlock:42}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:15,dataCodewordsPerBlock:24},{numBlocks:5,dataCodewordsPerBlock:25}]},{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:15,dataCodewordsPerBlock:15},{numBlocks:10,dataCodewordsPerBlock:16}]}]},{infoBits:87683,versionNumber:21,alignmentPatternCenters:[6,28,50,72,94],errorCorrectionLevels:[{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:4,dataCodewordsPerBlock:116},{numBlocks:4,dataCodewordsPerBlock:117}]},{ecCodewordsPerBlock:26,ecBlocks:[{numBlocks:17,dataCodewordsPerBlock:42}]},{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:17,dataCodewordsPerBlock:22},{numBlocks:6,dataCodewordsPerBlock:23}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:19,dataCodewordsPerBlock:16},{numBlocks:6,dataCodewordsPerBlock:17}]}]},{infoBits:92361,versionNumber:22,alignmentPatternCenters:[6,26,50,74,98],errorCorrectionLevels:[{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:2,dataCodewordsPerBlock:111},{numBlocks:7,dataCodewordsPerBlock:112}]},{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:17,dataCodewordsPerBlock:46}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:7,dataCodewordsPerBlock:24},{numBlocks:16,dataCodewordsPerBlock:25}]},{ecCodewordsPerBlock:24,ecBlocks:[{numBlocks:34,dataCodewordsPerBlock:13}]}]},{infoBits:96236,versionNumber:23,alignmentPatternCenters:[6,30,54,74,102],errorCorrectionLevels:[{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:4,dataCodewordsPerBlock:121},{numBlocks:5,dataCodewordsPerBlock:122}]},{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:4,dataCodewordsPerBlock:47},{numBlocks:14,dataCodewordsPerBlock:48}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:11,dataCodewordsPerBlock:24},{numBlocks:14,dataCodewordsPerBlock:25}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:16,dataCodewordsPerBlock:15},{numBlocks:14,dataCodewordsPerBlock:16}]}]},{infoBits:102084,versionNumber:24,alignmentPatternCenters:[6,28,54,80,106],errorCorrectionLevels:[{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:6,dataCodewordsPerBlock:117},{numBlocks:4,dataCodewordsPerBlock:118}]},{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:6,dataCodewordsPerBlock:45},{numBlocks:14,dataCodewordsPerBlock:46}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:11,dataCodewordsPerBlock:24},{numBlocks:16,dataCodewordsPerBlock:25}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:30,dataCodewordsPerBlock:16},{numBlocks:2,dataCodewordsPerBlock:17}]}]},{infoBits:102881,versionNumber:25,alignmentPatternCenters:[6,32,58,84,110],errorCorrectionLevels:[{ecCodewordsPerBlock:26,ecBlocks:[{numBlocks:8,dataCodewordsPerBlock:106},{numBlocks:4,dataCodewordsPerBlock:107}]},{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:8,dataCodewordsPerBlock:47},{numBlocks:13,dataCodewordsPerBlock:48}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:7,dataCodewordsPerBlock:24},{numBlocks:22,dataCodewordsPerBlock:25}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:22,dataCodewordsPerBlock:15},{numBlocks:13,dataCodewordsPerBlock:16}]}]},{infoBits:110507,versionNumber:26,alignmentPatternCenters:[6,30,58,86,114],errorCorrectionLevels:[{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:10,dataCodewordsPerBlock:114},{numBlocks:2,dataCodewordsPerBlock:115}]},{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:19,dataCodewordsPerBlock:46},{numBlocks:4,dataCodewordsPerBlock:47}]},{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:28,dataCodewordsPerBlock:22},{numBlocks:6,dataCodewordsPerBlock:23}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:33,dataCodewordsPerBlock:16},{numBlocks:4,dataCodewordsPerBlock:17}]}]},{infoBits:110734,versionNumber:27,alignmentPatternCenters:[6,34,62,90,118],errorCorrectionLevels:[{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:8,dataCodewordsPerBlock:122},{numBlocks:4,dataCodewordsPerBlock:123}]},{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:22,dataCodewordsPerBlock:45},{numBlocks:3,dataCodewordsPerBlock:46}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:8,dataCodewordsPerBlock:23},{numBlocks:26,dataCodewordsPerBlock:24}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:12,dataCodewordsPerBlock:15},{numBlocks:28,dataCodewordsPerBlock:16}]}]},{infoBits:117786,versionNumber:28,alignmentPatternCenters:[6,26,50,74,98,122],errorCorrectionLevels:[{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:3,dataCodewordsPerBlock:117},{numBlocks:10,dataCodewordsPerBlock:118}]},{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:3,dataCodewordsPerBlock:45},{numBlocks:23,dataCodewordsPerBlock:46}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:4,dataCodewordsPerBlock:24},{numBlocks:31,dataCodewordsPerBlock:25}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:11,dataCodewordsPerBlock:15},{numBlocks:31,dataCodewordsPerBlock:16}]}]},{infoBits:119615,versionNumber:29,alignmentPatternCenters:[6,30,54,78,102,126],errorCorrectionLevels:[{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:7,dataCodewordsPerBlock:116},{numBlocks:7,dataCodewordsPerBlock:117}]},{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:21,dataCodewordsPerBlock:45},{numBlocks:7,dataCodewordsPerBlock:46}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:1,dataCodewordsPerBlock:23},{numBlocks:37,dataCodewordsPerBlock:24}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:19,dataCodewordsPerBlock:15},{numBlocks:26,dataCodewordsPerBlock:16}]}]},{infoBits:126325,versionNumber:30,alignmentPatternCenters:[6,26,52,78,104,130],errorCorrectionLevels:[{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:5,dataCodewordsPerBlock:115},{numBlocks:10,dataCodewordsPerBlock:116}]},{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:19,dataCodewordsPerBlock:47},{numBlocks:10,dataCodewordsPerBlock:48}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:15,dataCodewordsPerBlock:24},{numBlocks:25,dataCodewordsPerBlock:25}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:23,dataCodewordsPerBlock:15},{numBlocks:25,dataCodewordsPerBlock:16}]}]},{infoBits:127568,versionNumber:31,alignmentPatternCenters:[6,30,56,82,108,134],errorCorrectionLevels:[{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:13,dataCodewordsPerBlock:115},{numBlocks:3,dataCodewordsPerBlock:116}]},{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:2,dataCodewordsPerBlock:46},{numBlocks:29,dataCodewordsPerBlock:47}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:42,dataCodewordsPerBlock:24},{numBlocks:1,dataCodewordsPerBlock:25}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:23,dataCodewordsPerBlock:15},{numBlocks:28,dataCodewordsPerBlock:16}]}]},{infoBits:133589,versionNumber:32,alignmentPatternCenters:[6,34,60,86,112,138],errorCorrectionLevels:[{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:17,dataCodewordsPerBlock:115}]},{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:10,dataCodewordsPerBlock:46},{numBlocks:23,dataCodewordsPerBlock:47}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:10,dataCodewordsPerBlock:24},{numBlocks:35,dataCodewordsPerBlock:25}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:19,dataCodewordsPerBlock:15},{numBlocks:35,dataCodewordsPerBlock:16}]}]},{infoBits:136944,versionNumber:33,alignmentPatternCenters:[6,30,58,86,114,142],errorCorrectionLevels:[{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:17,dataCodewordsPerBlock:115},{numBlocks:1,dataCodewordsPerBlock:116}]},{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:14,dataCodewordsPerBlock:46},{numBlocks:21,dataCodewordsPerBlock:47}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:29,dataCodewordsPerBlock:24},{numBlocks:19,dataCodewordsPerBlock:25}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:11,dataCodewordsPerBlock:15},{numBlocks:46,dataCodewordsPerBlock:16}]}]},{infoBits:141498,versionNumber:34,alignmentPatternCenters:[6,34,62,90,118,146],errorCorrectionLevels:[{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:13,dataCodewordsPerBlock:115},{numBlocks:6,dataCodewordsPerBlock:116}]},{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:14,dataCodewordsPerBlock:46},{numBlocks:23,dataCodewordsPerBlock:47}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:44,dataCodewordsPerBlock:24},{numBlocks:7,dataCodewordsPerBlock:25}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:59,dataCodewordsPerBlock:16},{numBlocks:1,dataCodewordsPerBlock:17}]}]},{infoBits:145311,versionNumber:35,alignmentPatternCenters:[6,30,54,78,102,126,150],errorCorrectionLevels:[{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:12,dataCodewordsPerBlock:121},{numBlocks:7,dataCodewordsPerBlock:122}]},{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:12,dataCodewordsPerBlock:47},{numBlocks:26,dataCodewordsPerBlock:48}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:39,dataCodewordsPerBlock:24},{numBlocks:14,dataCodewordsPerBlock:25}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:22,dataCodewordsPerBlock:15},{numBlocks:41,dataCodewordsPerBlock:16}]}]},{infoBits:150283,versionNumber:36,alignmentPatternCenters:[6,24,50,76,102,128,154],errorCorrectionLevels:[{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:6,dataCodewordsPerBlock:121},{numBlocks:14,dataCodewordsPerBlock:122}]},{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:6,dataCodewordsPerBlock:47},{numBlocks:34,dataCodewordsPerBlock:48}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:46,dataCodewordsPerBlock:24},{numBlocks:10,dataCodewordsPerBlock:25}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:2,dataCodewordsPerBlock:15},{numBlocks:64,dataCodewordsPerBlock:16}]}]},{infoBits:152622,versionNumber:37,alignmentPatternCenters:[6,28,54,80,106,132,158],errorCorrectionLevels:[{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:17,dataCodewordsPerBlock:122},{numBlocks:4,dataCodewordsPerBlock:123}]},{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:29,dataCodewordsPerBlock:46},{numBlocks:14,dataCodewordsPerBlock:47}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:49,dataCodewordsPerBlock:24},{numBlocks:10,dataCodewordsPerBlock:25}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:24,dataCodewordsPerBlock:15},{numBlocks:46,dataCodewordsPerBlock:16}]}]},{infoBits:158308,versionNumber:38,alignmentPatternCenters:[6,32,58,84,110,136,162],errorCorrectionLevels:[{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:4,dataCodewordsPerBlock:122},{numBlocks:18,dataCodewordsPerBlock:123}]},{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:13,dataCodewordsPerBlock:46},{numBlocks:32,dataCodewordsPerBlock:47}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:48,dataCodewordsPerBlock:24},{numBlocks:14,dataCodewordsPerBlock:25}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:42,dataCodewordsPerBlock:15},{numBlocks:32,dataCodewordsPerBlock:16}]}]},{infoBits:161089,versionNumber:39,alignmentPatternCenters:[6,26,54,82,110,138,166],errorCorrectionLevels:[{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:20,dataCodewordsPerBlock:117},{numBlocks:4,dataCodewordsPerBlock:118}]},{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:40,dataCodewordsPerBlock:47},{numBlocks:7,dataCodewordsPerBlock:48}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:43,dataCodewordsPerBlock:24},{numBlocks:22,dataCodewordsPerBlock:25}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:10,dataCodewordsPerBlock:15},{numBlocks:67,dataCodewordsPerBlock:16}]}]},{infoBits:167017,versionNumber:40,alignmentPatternCenters:[6,30,58,86,114,142,170],errorCorrectionLevels:[{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:19,dataCodewordsPerBlock:118},{numBlocks:6,dataCodewordsPerBlock:119}]},{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:18,dataCodewordsPerBlock:47},{numBlocks:31,dataCodewordsPerBlock:48}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:34,dataCodewordsPerBlock:24},{numBlocks:34,dataCodewordsPerBlock:25}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:20,dataCodewordsPerBlock:15},{numBlocks:61,dataCodewordsPerBlock:16}]}]}]},function(o,e,r){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var t=r(0);function c(o,e,r,t){var c=o.x-e.x+r.x-t.x,s=o.y-e.y+r.y-t.y;if(0===c&&0===s)return{a11:e.x-o.x,a12:e.y-o.y,a13:0,a21:r.x-e.x,a22:r.y-e.y,a23:0,a31:o.x,a32:o.y,a33:1};var a=e.x-r.x,n=t.x-r.x,d=e.y-r.y,l=t.y-r.y,i=a*l-n*d,B=(c*l-n*s)/i,k=(a*s-c*d)/i;return{a11:e.x-o.x+B*e.x,a12:e.y-o.y+B*e.y,a13:B,a21:t.x-o.x+k*t.x,a22:t.y-o.y+k*t.y,a23:k,a31:o.x,a32:o.y,a33:1}}e.extract=function(o,e){for(var r,s,a=function(o,e,r,t){var s=c(o,e,r,t);return{a11:s.a22*s.a33-s.a23*s.a32,a12:s.a13*s.a32-s.a12*s.a33,a13:s.a12*s.a23-s.a13*s.a22,a21:s.a23*s.a31-s.a21*s.a33,a22:s.a11*s.a33-s.a13*s.a31,a23:s.a13*s.a21-s.a11*s.a23,a31:s.a21*s.a32-s.a22*s.a31,a32:s.a12*s.a31-s.a11*s.a32,a33:s.a11*s.a22-s.a12*s.a21}}({x:3.5,y:3.5},{x:e.dimension-3.5,y:3.5},{x:e.dimension-6.5,y:e.dimension-6.5},{x:3.5,y:e.dimension-3.5}),n=c(e.topLeft,e.topRight,e.alignmentPattern,e.bottomLeft),d=(s=a,{a11:(r=n).a11*s.a11+r.a21*s.a12+r.a31*s.a13,a12:r.a12*s.a11+r.a22*s.a12+r.a32*s.a13,a13:r.a13*s.a11+r.a23*s.a12+r.a33*s.a13,a21:r.a11*s.a21+r.a21*s.a22+r.a31*s.a23,a22:r.a12*s.a21+r.a22*s.a22+r.a32*s.a23,a23:r.a13*s.a21+r.a23*s.a22+r.a33*s.a23,a31:r.a11*s.a31+r.a21*s.a32+r.a31*s.a33,a32:r.a12*s.a31+r.a22*s.a32+r.a32*s.a33,a33:r.a13*s.a31+r.a23*s.a32+r.a33*s.a33}),l=t.BitMatrix.createEmpty(e.dimension,e.dimension),i=function(o,e){var r=d.a13*o+d.a23*e+d.a33;return{x:(d.a11*o+d.a21*e+d.a31)/r,y:(d.a12*o+d.a22*e+d.a32)/r}},B=0;B<e.dimension;B++)for(var k=0;k<e.dimension;k++){var u=i(k+.5,B+.5);l.set(k,B,o.get(Math.floor(u.x),Math.floor(u.y)))}return{matrix:l,mappingFunction:i}}},function(o,e,r){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var t=function(o,e){return Math.sqrt(Math.pow(e.x-o.x,2)+Math.pow(e.y-o.y,2))};function c(o){return o.reduce(function(o,e){return o+e})}function s(o,e,r,c){var s,a,n,d,l=[{x:Math.floor(o.x),y:Math.floor(o.y)}],i=Math.abs(e.y-o.y)>Math.abs(e.x-o.x);i?(s=Math.floor(o.y),a=Math.floor(o.x),n=Math.floor(e.y),d=Math.floor(e.x)):(s=Math.floor(o.x),a=Math.floor(o.y),n=Math.floor(e.x),d=Math.floor(e.y));for(var B=Math.abs(n-s),k=Math.abs(d-a),u=Math.floor(-B/2),C=s<n?1:-1,m=a<d?1:-1,f=!0,w=s,P=a;w!==n+C;w+=C){var v=i?P:w,h=i?w:P;if(r.get(v,h)!==f&&(f=!f,l.push({x:v,y:h}),l.length===c+1))break;if((u+=k)>0){if(P===d)break;P+=m,u-=B}}for(var y=[],p=0;p<c;p++)l[p]&&l[p+1]?y.push(t(l[p],l[p+1])):y.push(0);return y}function a(o,e,r,t){var c,a=e.y-o.y,n=e.x-o.x,d=s(o,e,r,Math.ceil(t/2)),l=s(o,{x:o.x-n,y:o.y-a},r,Math.ceil(t/2)),i=d.shift()+l.shift()-1;return(c=l.concat(i)).concat.apply(c,d)}function n(o,e){var r=c(o)/c(e),t=0;return e.forEach(function(e,c){t+=Math.pow(o[c]-e*r,2)}),{averageSize:r,error:t}}function d(o,e,r){try{var t=a(o,{x:-1,y:o.y},r,e.length),c=a(o,{x:o.x,y:-1},r,e.length),s=a(o,{x:Math.max(0,o.x-o.y)-1,y:Math.max(0,o.y-o.x)-1},r,e.length),d=a(o,{x:Math.min(r.width,o.x+o.y)+1,y:Math.min(r.height,o.y+o.x)+1},r,e.length),l=n(t,e),i=n(c,e),B=n(s,e),k=n(d,e),u=Math.sqrt(l.error*l.error+i.error*i.error+B.error*B.error+k.error*k.error),C=(l.averageSize+i.averageSize+B.averageSize+k.averageSize)/4;return u+(Math.pow(l.averageSize-C,2)+Math.pow(i.averageSize-C,2)+Math.pow(B.averageSize-C,2)+Math.pow(k.averageSize-C,2))/C}catch(o){return 1/0}}function l(o,e){for(var r=Math.round(e.x);o.get(r,Math.round(e.y));)r--;for(var t=Math.round(e.x);o.get(t,Math.round(e.y));)t++;for(var c=(r+t)/2,s=Math.round(e.y);o.get(Math.round(c),s);)s--;for(var a=Math.round(e.y);o.get(Math.round(c),a);)a++;return{x:c,y:(s+a)/2}}function i(o,e,r,s,n){var l,i,B;try{l=function(o,e,r,s){var n=(c(a(o,r,s,5))/7+c(a(o,e,s,5))/7+c(a(r,o,s,5))/7+c(a(e,o,s,5))/7)/4;if(n<1)throw new Error("Invalid module size");var d=Math.round(t(o,e)/n),l=Math.round(t(o,r)/n),i=Math.floor((d+l)/2)+7;switch(i%4){case 0:i++;break;case 2:i--}return{dimension:i,moduleSize:n}}(s,r,n,o),i=l.dimension,B=l.moduleSize}catch(o){return null}var k=r.x-s.x+n.x,u=r.y-s.y+n.y,C=(t(s,n)+t(s,r))/2/B,m=1-3/C,f={x:s.x+m*(k-s.x),y:s.y+m*(u-s.y)},w=e.map(function(e){var r=(e.top.startX+e.top.endX+e.bottom.startX+e.bottom.endX)/4,s=(e.top.y+e.bottom.y+1)/2;if(o.get(Math.floor(r),Math.floor(s))){var a=[e.top.endX-e.top.startX,e.bottom.endX-e.bottom.startX,e.bottom.y-e.top.y+1];c(a);return{x:r,y:s,score:d({x:Math.floor(r),y:Math.floor(s)},[1,1,1],o)+t({x:r,y:s},f)}}}).filter(function(o){return!!o}).sort(function(o,e){return o.score-e.score});return{alignmentPattern:C>=15&&w.length?w[0]:f,dimension:i}}e.locate=function(o){for(var e=[],r=[],s=[],a=[],n=function(t){for(var n=0,d=!1,l=[0,0,0,0,0],i=function(e){var s=o.get(e,t);if(s===d)n++;else{l=[l[1],l[2],l[3],l[4],n],n=1,d=s;var i=c(l)/7,B=Math.abs(l[0]-i)<i&&Math.abs(l[1]-i)<i&&Math.abs(l[2]-3*i)<3*i&&Math.abs(l[3]-i)<i&&Math.abs(l[4]-i)<i&&!s,k=c(l.slice(-3))/3,u=Math.abs(l[2]-k)<k&&Math.abs(l[3]-k)<k&&Math.abs(l[4]-k)<k&&s;if(B){var C=e-l[3]-l[4],m=C-l[2],f={startX:m,endX:C,y:t};(w=r.filter(function(o){return m>=o.bottom.startX&&m<=o.bottom.endX||C>=o.bottom.startX&&m<=o.bottom.endX||m<=o.bottom.startX&&C>=o.bottom.endX&&l[2]/(o.bottom.endX-o.bottom.startX)<1.5&&l[2]/(o.bottom.endX-o.bottom.startX)>.5})).length>0?w[0].bottom=f:r.push({top:f,bottom:f})}if(u){var w,P=e-l[4],v=P-l[3];f={startX:v,y:t,endX:P};(w=a.filter(function(o){return v>=o.bottom.startX&&v<=o.bottom.endX||P>=o.bottom.startX&&v<=o.bottom.endX||v<=o.bottom.startX&&P>=o.bottom.endX&&l[2]/(o.bottom.endX-o.bottom.startX)<1.5&&l[2]/(o.bottom.endX-o.bottom.startX)>.5})).length>0?w[0].bottom=f:a.push({top:f,bottom:f})}}},B=-1;B<=o.width;B++)i(B);e.push.apply(e,r.filter(function(o){return o.bottom.y!==t&&o.bottom.y-o.top.y>=2})),r=r.filter(function(o){return o.bottom.y===t}),s.push.apply(s,a.filter(function(o){return o.bottom.y!==t})),a=a.filter(function(o){return o.bottom.y===t})},B=0;B<=o.height;B++)n(B);e.push.apply(e,r.filter(function(o){return o.bottom.y-o.top.y>=2})),s.push.apply(s,a);var k=e.filter(function(o){return o.bottom.y-o.top.y>=2}).map(function(e){var r=(e.top.startX+e.top.endX+e.bottom.startX+e.bottom.endX)/4,t=(e.top.y+e.bottom.y+1)/2;if(o.get(Math.round(r),Math.round(t))){var s=[e.top.endX-e.top.startX,e.bottom.endX-e.bottom.startX,e.bottom.y-e.top.y+1],a=c(s)/s.length;return{score:d({x:Math.round(r),y:Math.round(t)},[1,1,3,1,1],o),x:r,y:t,size:a}}}).filter(function(o){return!!o}).sort(function(o,e){return o.score-e.score}).map(function(o,e,r){if(e>4)return null;var t=r.filter(function(o,r){return e!==r}).map(function(e){return{x:e.x,y:e.y,score:e.score+Math.pow(e.size-o.size,2)/o.size,size:e.size}}).sort(function(o,e){return o.score-e.score});if(t.length<2)return null;var c=o.score+t[0].score+t[1].score;return{points:[o].concat(t.slice(0,2)),score:c}}).filter(function(o){return!!o}).sort(function(o,e){return o.score-e.score});if(0===k.length)return null;var u=function(o,e,r){var c,s,a,n,d,l,i,B=t(o,e),k=t(e,r),u=t(o,r);return k>=B&&k>=u?(d=(c=[e,o,r])[0],l=c[1],i=c[2]):u>=k&&u>=B?(d=(s=[o,e,r])[0],l=s[1],i=s[2]):(d=(a=[o,r,e])[0],l=a[1],i=a[2]),(i.x-l.x)*(d.y-l.y)-(i.y-l.y)*(d.x-l.x)<0&&(d=(n=[i,d])[0],i=n[1]),{bottomLeft:d,topLeft:l,topRight:i}}(k[0].points[0],k[0].points[1],k[0].points[2]),C=u.topRight,m=u.topLeft,f=u.bottomLeft,w=i(o,s,C,m,f),P=[];w&&P.push({alignmentPattern:{x:w.alignmentPattern.x,y:w.alignmentPattern.y},bottomLeft:{x:f.x,y:f.y},dimension:w.dimension,topLeft:{x:m.x,y:m.y},topRight:{x:C.x,y:C.y}});var v=l(o,C),h=l(o,m),y=l(o,f),p=i(o,s,v,h,y);return p&&P.push({alignmentPattern:{x:p.alignmentPattern.x,y:p.alignmentPattern.y},bottomLeft:{x:y.x,y:y.y},topLeft:{x:h.x,y:h.y},topRight:{x:v.x,y:v.y},dimension:p.dimension}),0===P.length?null:P}}]).default});</script>
