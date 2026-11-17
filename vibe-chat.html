@@ -344,13 +344,17 @@ In one or two short plain sentences, in the same language as the student's last 
 Use only what the error text says. Do not guess causes or fixes. If the error text does not make the cause or the fix clear, say you do not know and ask the student ONE short question that would help.
 No markdown, no apologies.`;
 // Used by "Save memory". The app attaches the latest code itself, so the model never rewrites code.
-const MEMORY_PROMPT = `You write a memory file for a coding chat between a student (not a programmer) and an AI assistant.
+// The app, not the model, decides the memory file's language: English, or Hebrew if the student writes in Hebrew.
+// Left to the model, "the student's language" was sometimes guessed wrong (for example, Spanish for an English chat).
+const memoryPrompt = lang => MEMORY_PROMPT_TEMPLATE.replace("{{LANGUAGE}}",
+  `Write every bullet in ${lang==='he' ? 'Hebrew' : 'English'}, even if parts of the conversation are in another language.`);
+const MEMORY_PROMPT_TEMPLATE = `You write a memory file for a coding chat between a student (not a programmer) and an AI assistant.
 Output markdown only, about 250 words at most, with exactly these sections in this order:
 ## Goal
 ## Decisions and preferences
 ## Current state
 ## Open problems
-Write short "-" bullets under each heading. Keep the headings in English and write the bullets in the language the student used.
+Write short "-" bullets under each heading. Keep the headings in English. {{LANGUAGE}}
 Use only what is in the conversation. Do not invent anything. Do not include code: the app attaches the latest code separately.
 If an existing memory is provided, update it: keep what is still true, remove what was resolved or contradicted, and add what is new.`;
 
@@ -1631,7 +1635,7 @@ $('saveMem').onclick=async()=>{
     const prior = memory ? `Existing memory to update:\n<memory>\n${stripPromptTags(memory.text)}\n</memory>\n\n` : '';
     const r=await fetch(API+'/chat/completions',{method:'POST',headers:headers(key),body:JSON.stringify({
       model, stream:false, max_tokens:700, usage:{include:true}, provider:PRIVACY,
-      messages:[{role:'system',content:MEMORY_PROMPT},{role:'user',content:`${prior}Conversation:\n${transcript()}`}]
+      messages:[{role:'system',content:memoryPrompt(curLang(sample))},{role:'user',content:`${prior}Conversation:\n${transcript()}`}]
     })});
     if(!r.ok){ let d=''; try{ const j=await r.json(); d=j.error?.message||''; }catch{} throw apiErr(r.status,d); }
     const j=await r.json();

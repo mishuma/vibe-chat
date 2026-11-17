@@ -103,6 +103,9 @@ function folderMock(name){
   ok($('saveMem').textContent==='Save memory' && !$('saveMem').disabled,'the button returns to normal');
   ok(/in the vibe-chat folder/.test(chatText()) && /Reset conversation, then Load memory/.test(chatText()),'the notice says where it went and what to do next');
   ok(bodies[0].provider && bodies[0].provider.data_collection==='deny','the memory request uses the privacy setting too');
+  const memSys=bodies[0].messages[0].content;
+  ok(/Write every bullet in English/.test(memSys) && !/language the student used/.test(memSys) && !/\{\{LANGUAGE\}\}/.test(memSys),'the app tells the model to write the memory in English, instead of letting it guess');
+  ok(/Write every bullet in Hebrew/.test(ev("memoryPrompt('he')")),'a Hebrew conversation gets a Hebrew memory');
 
   // Load memory opens in the save folder
   let openOpts=null; w.showOpenFilePicker=async o=>{ openOpts=o; return [await dir.getFileHandle(memName)]; };
