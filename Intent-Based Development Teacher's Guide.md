@@ -22,7 +22,7 @@ The rest of this guide explains each step. This page is the order to do them in.
 **On the day**
 
 1. Close qr-key.html. Open dashboard/cost-board.html, paste the Management key, click Show keys, and start cycling or show Entire Class. Press F for full screen.
-2. Visit each team with qr-key.html on your laptop. The team scans its QR code, clicks Test, picks the model, enters the spend limit in Settings, and clicks Choose save folder to pick its vibe-chat folder (section 3.2).
+2. Visit each team with qr-key.html on your laptop. The team scans its QR code, clicks Test, picks the model, and clicks Choose save folder to pick its vibe-chat folder (section 3.2). The bar at the top then shows the money left on the team's key.
 3. Draw the four steps on the board: Prompt, Paste, Run, Observe (section 4). Hand out the activity guide (section 5).
 4. While teams work, ask stuck teams "Which step are you on?" Watch the cost board.
 
@@ -65,7 +65,7 @@ Complete the text in [FILL IN: ...] brackets before class. Items marked [TO CONF
 | Session length, after set-up | [FILL IN: minutes. See "Available activities" in section 5] |
 | Activity guide students will use | [FILL IN: activity name and version, from "Available activities" in section 5] |
 | Model teams pick in vibe-chat | [FILL IN: the latest Claude Haiku, Sonnet, or Opus, or another model name] |
-| Spend limit teams enter in Settings | [FILL IN: dollar amount] |
+| Extra spend limit teams enter in Settings (optional) | [FILL IN: dollar amount, or "none": every key's credit limit is already shown and enforced] |
 | Folder teams choose with Choose save folder | The vibe-chat folder made by the setup script, inside Documents (change if you used another) |
 | cost-board.html mode to start in | [FILL IN: whole class or each team] |
 | Where teams get vibe-chat-workshop.zip | [FILL IN: link or location] |
@@ -106,7 +106,7 @@ This guide is the master. The Student Guide is made from it. To change what stud
 
 | Version | Date | What changed in this guide | Student guide updated |
 | :---- | :---- | :---- | :---- |
-| 0.2 | 2026-11-17 | Quick start page. Privacy setting in vibe-chat and in OpenRouter. Choose save folder in the top bar; the Files tab shows the latest code; Save code, Save chat and Save memory all use the save folder; Load memory answered. Cost board section rewritten to match the board. Kit paths, build steps and the skill file answered. | Yes, version 0.2 |
+| 0.2 | 2026-11-17 | Quick start page. Privacy setting in vibe-chat and in OpenRouter. The spend bar shows the money left on the team's key, read from OpenRouter; the Settings spend limit is optional. Choose save folder in the top bar; the Files tab shows the latest code; Save code, Save chat and Save memory all use the save folder; Load memory answered. Cost board section rewritten to match the board. Kit paths, build steps and the skill file answered. | Yes, version 0.2 |
 | 0.1 | 2026-11-02 | First version. Made from the Teacher Starter Guide (Oct 23, 2026) in the paired-guide format. Generic tool guide with an activity slot (section 5). Set-up done before the session. One key per team, teams of 1 or 2 with one laptop. cost-board.html. Age disclaimer. Saved chats, memory, and skills in optional Appendix A. Trademarks in Appendix B. | Yes, version 0.1 |
 
 ### 1. Introduction
@@ -174,7 +174,7 @@ The Mac script was tested only on a Linux machine with stand-in commands. The Wi
 
 **Direct students to:** [STUDENT: 3. Connect: Your key, model, and spend limit]
 
-**Problem to solve:** Before the first message, each team needs its own working API key, the right model, and a spend limit. Typing a long key by hand is slow, so teams scan a QR code instead.
+**Problem to solve:** Before the first message, each team needs its own working API key with a credit limit, and the right model. A spend limit of the team's own is optional. Typing a long key by hand is slow, so teams scan a QR code instead.
 
 #### 3.1 Concept: Keys, tokens, and cost
 
@@ -184,8 +184,8 @@ There are two limits:
 
 | Limit | Who sets it | Where | What it does |
 | :---- | :---- | :---- | :---- |
-| Credit limit | You | OpenRouter, on each team's key | The real cap. OpenRouter enforces it. |
-| Spend limit | The team | vibe-chat Settings, on the team's laptop | vibe-chat stops sending at this amount. The app enforces only this limit. |
+| Credit limit | You | OpenRouter, on each team's key | The real cap. vibe-chat reads it from OpenRouter, shows the money left on the bar, and stops sending at zero. OpenRouter enforces it too. |
+| Spend limit (optional) | The team | vibe-chat Settings, on the team's laptop | A lower limit of the team's own. vibe-chat stops at whichever limit is reached first. Teams can raise or remove it. |
 
 #### 3.2 Activity: Open vibe-chat and connect
 
@@ -194,15 +194,15 @@ There are two limits:
    **Troubleshooting: The camera is blocked or the scan fails:** Allow camera access if the browser asks. If the scan still fails, paste the key by hand.
    **Troubleshooting: Test shows a problem:** The problem appears as a message in the chat window, with advice in English or Hebrew.
 3. Pick a model: [FILL IN: model]. Choose it from the list, or choose Other model and type a model name.
-4. Open Settings and enter the spend limit: [FILL IN: dollar amount].
-   **Look for:** A colored bar at the top runs from green to red as the session spends toward the spend limit. The text beside it shows dollars spent out of the limit. A panel shows tokens in, tokens out, and cost for the last turn, plus the session total. A tilde (~) marks an estimate.
-   **Troubleshooting: The bar stays empty:** No spend limit is set, and nothing is stopped. Enter the limit in Settings.
-   **Troubleshooting: The team closed or reloaded the tab:** The key is kept only while the tab is open. The team enters it again, and chooses the save folder again (step 5). The spending totals restart, but the spend limit stays saved in the browser.
+4. Optional: open Settings and enter a spend limit: [FILL IN: dollar amount, or skip this step]. With a credit limit on every key, teams can skip it.
+   **Look for:** A colored bar at the top runs from green to red as the key's money runs out. Beside it, "Key credit" shows the dollars left out of the key's credit limit, and when the limit resets if it does. If the team set its own spend limit, that shows too. A panel shows tokens in, tokens out, and cost for the last turn, plus the session total. A tilde (~) marks an estimate.
+   **Troubleshooting: The bar says "Budget spent" instead of "Key credit":** vibe-chat could not read the key's credit limit, usually because the key has none. Give the key a credit limit in OpenRouter, then click Test. Until then, only a spend limit in Settings stops the app, and OpenRouter stops the key only at the account's credit.
+   **Troubleshooting: The team closed or reloaded the tab:** The key is kept only while the tab is open. The team enters it again, and chooses the save folder again (step 5). The bar shows the key's money left again at once, because it comes from OpenRouter. The session totals restart.
 5. Click Choose save folder in the top bar and pick the team's vibe-chat folder in Documents (the folder the setup script made). The top bar then shows "Saving to: vibe-chat." Everything the team saves goes there.
    **Troubleshooting: Chrome says the folder "contains system files":** Chrome does not allow Documents, Desktop, Downloads or the home folder themselves. Pick the vibe-chat folder inside Documents.
    **Troubleshooting: There is no Choose save folder button, or it does nothing:** The browser is not Chrome or Edge. Saving still works; each file goes to the Downloads folder.
 
-**Teacher checkpoint.** Check that each team has a passing Test, the right model, a spend limit set, and "Saving to: vibe-chat" in the top bar.
+**Teacher checkpoint.** Check that each team has a passing Test, the right model, "Key credit" with the right amount on the bar, and "Saving to: vibe-chat" in the top bar.
 
 **Teacher Note: Before class: create and share keys**
 
@@ -272,7 +272,7 @@ Haiku is the smallest and cheapest, Sonnet sits in the middle, and Opus is the m
 
 **Teacher Note: Good to know**
 
-The spend limit is saved in the browser. Totals restart when the page is closed or reloaded, so the key's credit limit in OpenRouter is the only cap teams cannot reset. English and Hebrew messages are built in, and Hebrew text displays right to left. Other languages get English messages.
+The bar's "Key credit" comes from OpenRouter, so it stays correct when a team reloads the page or uses another laptop with the same key. vibe-chat checks it after every reply, at no cost, and counts down on its own until OpenRouter catches up. The optional spend limit is saved in the browser and the session totals restart on reload, so a team can reset or raise its own limit but never the key's credit limit. English and Hebrew messages are built in, and Hebrew text displays right to left. Other languages get English messages.
 
 **Teacher Note: Checking a key outside vibe-chat (optional, technical)**
 
@@ -291,7 +291,7 @@ Token tracking in Claude Code is in Appendix A.
 * "What uses up tokens?"
 * **Listen for:** both the team's messages (tokens in) and the AI's replies (tokens out).
 * "Who sets the spend limit, and who sets the key's credit limit?"
-* **Listen for:** the team sets the spend limit in vibe-chat. The teacher's limit in OpenRouter is the real cap.
+* **Listen for:** the teacher sets the key's credit limit in OpenRouter, and it is the real cap; the bar shows what is left of it. A team can add a lower spend limit of its own in vibe-chat.
 
 #### 3.4 Key Terms
 
@@ -326,7 +326,7 @@ Draw the four steps on the board before teams start the activity. If a team skip
 2. To add an image or file, click the paperclip. Pasting a screenshot also works.
 3. Click the paper airplane to send.
 4. Wait for the AI to finish. Code appears in the code window on the right. Read the reply.
-   **Troubleshooting: Send is greyed out:** The spend bar is full. Raising the limit in Settings turns Send back on and keeps the chat. [FILL IN: whether teams may raise it or must ask you]
+   **Troubleshooting: Send is greyed out:** Hover over Send to see why. "This key has no credit left": the team asks you; add credit to the key in OpenRouter, then the team clicks Test. "Spend limit reached": raising the limit in Settings turns Send back on and keeps the chat. [FILL IN: whether teams may raise it or must ask you]
    **Troubleshooting: An error from OpenRouter appears in the chat:** The team's key may have reached its credit limit. The team tells you.
    **Troubleshooting: The chat says the model is only offered by providers that may keep or train on what you send:** Choose another model, such as one of the Claude options. See "Privacy" in section 3.
 
@@ -334,7 +334,7 @@ Draw the four steps on the board before teams start the activity. If a team skip
 
 **Teacher Note: Technical detail (optional)**
 
-A reply's cost is known only after it finishes, so spending can land slightly over the spend limit.
+A reply's cost is known only after it finishes, so spending can land slightly over either limit. OpenRouter may also count a reply a few seconds late; vibe-chat subtracts the reply itself in the meantime and checks again 10 seconds later. [TO CONFIRM] How long OpenRouter takes to update a key's remaining credit with a real key.
 
 #### 4.3 Activity: Paste from vibe-chat
 

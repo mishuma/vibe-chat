@@ -58,13 +58,13 @@ This way of working is called intent-based development, or vibe coding. If somet
 
 ### 3. Connect: Your key, model, and spend limit
 
-**Problem:** Before you send your first message, you need your team's key, the right model, and a spend limit.
+**Problem:** Before you send your first message, you need your team's key and the right model. A spend limit of your own is optional.
 
 #### 3.1 Concept: Keys, tokens, and cost
 
 The AI reads and writes text in small chunks called tokens. Each token costs a little money. Your messages and the AI's replies both use tokens.
 
-An API key lets vibe-chat use the AI. Your team has its own key. Your teacher sets a credit limit on it. Your team also sets its own spend limit in vibe-chat. When you reach it, vibe-chat stops sending.
+An API key lets vibe-chat use the AI. Your team has its own key. Your teacher puts a credit limit on it: the most money the key can spend. vibe-chat shows how much is left and stops sending when it runs out. Your team can also set a lower spend limit of its own in vibe-chat.
 
 Your teacher may show token spending on the main screen, for the whole class or for each team.
 
@@ -76,9 +76,9 @@ Your teacher may show token spending on the main screen, for the whole class or 
    **Troubleshooting: The camera is blocked or the scan fails:** Allow camera access if your browser asks. If the scan still fails, paste the key by hand.
    **Troubleshooting: Test shows a problem:** Read the message in the chat. It gives advice in English or Hebrew.
 3. Pick the model your teacher names: [FILL IN: model]. If it is not in the list, choose Other model and type its name.
-4. Open Settings and enter your spend limit: [FILL IN: dollar amount].
-   **Look for:** The colored bar at the top. It goes from green to red as you spend. The text next to it shows dollars spent out of your limit. The panel shows tokens in, tokens out, and cost for your last turn and for the whole session. A tilde (~) means the number is an estimate.
-   **Troubleshooting: The bar stays empty:** No spend limit is set. Enter it in Settings.
+4. Optional: open Settings and enter a spend limit: [FILL IN: dollar amount, or skip this step].
+   **Look for:** The colored bar at the top. It goes from green to red as your key's money runs out. "Key credit" next to it shows the dollars left out of your key's limit. The panel shows tokens in, tokens out, and cost for your last turn and for the whole session. A tilde (~) means the number is an estimate.
+   **Troubleshooting: The bar says "Budget spent" instead of "Key credit":** Click Test. If it still says "Budget spent," tell your teacher.
    **Troubleshooting: You closed or reloaded the tab:** Enter your key again, and choose your save folder again (step 5). Your spending totals start over.
 5. Click Choose save folder at the top. Pick the vibe-chat folder in Documents (the one the setup script made). The top now says "Saving to: vibe-chat." Everything you save goes there.
    **Troubleshooting: Chrome says the folder "contains system files":** Pick the vibe-chat folder inside Documents, not Documents itself.
@@ -117,7 +117,7 @@ Your activity guide tells you what each step means for your task.
 2. To add an image or a file, click the paperclip. You can also paste a screenshot.
 3. Click the paper airplane to send.
 4. Wait for the AI to finish. The code appears on the right. Read the AI's answer.
-   **Troubleshooting: Send is greyed out:** You reached your spend limit. Ask your teacher. Raising the limit in Settings turns Send back on and keeps your chat.
+   **Troubleshooting: Send is greyed out:** Hold the mouse over Send to see why. "This key has no credit left": ask your teacher. "Spend limit reached": ask your teacher; raising your limit in Settings turns Send back on and keeps your chat.
    **Troubleshooting: An error from OpenRouter appears in the chat:** Tell your teacher. Your team's key may be out of credit.
    **Troubleshooting: The chat says the model is only offered by providers that may keep or train on what you send:** vibe-chat protects what you send, so it will not use that model. Choose another model, such as one of the Claude options.
 

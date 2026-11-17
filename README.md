@@ -1,6 +1,6 @@
 # vibe-chat
 
-Single-file browser chat for learning vibe coding, written for high school students. Students use their own OpenRouter key and a chosen model; generated code appears in a read-only code window with Copy and Save buttons, and the latest code plus other files the model makes (Markdown, CSV, SVG images, JSON, HTML) wait in a Files tab until you save them. Every request asks OpenRouter for providers that do not store or train on prompts. Tracks tokens and spend against a user-set limit. Works with LTR and RTL languages.
+Single-file browser chat for learning vibe coding, written for high school students. Students use their own OpenRouter key and a chosen model; generated code appears in a read-only code window with Copy and Save buttons, and the latest code plus other files the model makes (Markdown, CSV, SVG images, JSON, HTML) wait in a Files tab until you save them. Every request asks OpenRouter for providers that do not store or train on prompts. Tracks tokens and spend, and shows the money left on the key's OpenRouter credit limit (with an optional lower limit of the student's own). Works with LTR and RTL languages.
 
 ## Run (no setup)
 Open `vibe-chat.html` in Chrome or Edge. No server, no install. Camera QR scanning needs https or localhost (Chrome usually allows it from a file too).
@@ -10,7 +10,7 @@ Open `vibe-chat.html` in Chrome or Edge. No server, no install. Camera QR scanni
 - Tests (jsdom, run from the repo root):
   ```
   npm install --no-save jsdom@26
-  node test.js && node dashboard/cost-board.test.js && node test-voice.js && node test-artifacts.js && node test-saving.js
+  node test.js && node dashboard/cost-board.test.js && node test-voice.js && node test-artifacts.js && node test-saving.js && node test-credit.js
   ```
 - Rebuild the zip after changing `vibe-chat.html` or `install/`: `bash install/build-zip.sh`.
 
@@ -29,6 +29,9 @@ Open `vibe-chat.html` in Chrome or Edge. No server, no install. Camera QR scanni
 1. Send students `SETUP.txt` and the zip (or the `install/` scripts plus `vibe-chat.html`). They run the setup script, which checks browser, camera and access to openrouter.ai, and copies the app into a folder.
 2. Create one OpenRouter key per student, with a spending limit. Turn the keys into QR codes with `tools/qr-key.html`.
 3. On the day, project the cost board (below) so you can see spend per key.
+
+## Key credit and spend limit
+If the key has a credit limit on OpenRouter, the bar at the top shows **Key credit**: the dollars left out of that limit, read with `GET /api/v1/key` (free, no tokens) when the key is entered or tested and after every paid request. When it reaches zero, Send turns off and the chat says to ask the teacher, so no request is made just to be refused. OpenRouter can count a reply a few seconds late, so the app subtracts each reply's cost itself and only accepts a higher balance on a later check (10 seconds after the last request), which also picks up a limit that resets daily, weekly or monthly. The **spend limit** in Settings is optional: a lower limit of the student's own, saved in the browser; the app stops at whichever limit is reached first. A key with no credit limit falls back to the spend limit alone, as before.
 
 ## Privacy
 Every request (chat, error advice, Save memory) includes OpenRouter's `provider: {data_collection: "deny"}`, so it is routed only to providers that do not store or train on prompts. If no such provider serves the chosen model, OpenRouter refuses the request and the chat tells the student, in English or Hebrew, to choose another model. For the same protection outside the app, also turn off training providers for the account at openrouter.ai/settings/privacy.

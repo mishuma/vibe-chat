@@ -1,6 +1,7 @@
 const fs=require('fs'); const {JSDOM}=require('jsdom');
 const html=fs.readFileSync(''+require('path').join(__dirname,'vibe-chat.html')+'','utf8');
 const calls=[]; let chatMode='ok'; const errs=[];
+const chatCalls=()=>calls.filter(c=>c.url.endsWith('/chat/completions')).length;   // paid requests only; GET /key is free
 function sse(parts){ const enc=new TextEncoder(); let i=0; return {ok:true,body:{getReader:()=>({read:async()=>{ await new Promise(r=>setTimeout(r,60)); return i<parts.length?{done:false,value:enc.encode(parts[i++])}:{done:true}; }})}}; }
 const dom=new JSDOM(html,{runScripts:'dangerously',url:'https://localhost/',pretendToBeVisual:true,
   beforeParse(w){
@@ -34,9 +35,9 @@ const chatText=()=>$('chat').textContent;
   ok(!$('warn') && !$('notice') && !$('skillNote'),'no error widgets outside the chat');
   $('key').value='sk-or-x';
   // 402 -> raw error + built-in advice, in the chat, input restored, no side request
-  chatMode='402'; $('input').value='build a game'; let n0=calls.length; await ev('sendMessage()'); await sleep(20);
+  chatMode='402'; $('input').value='build a game'; let n0=chatCalls(); await ev('sendMessage()'); await sleep(20);
   ok(/OpenRouter error 402: Insufficient credits/.test(chatText()) && /no credit left/.test(chatText()),'402 reported in chat with English advice');
-  ok(calls.length===n0+1 && $('input').value==='build a game' && ev('history.length')===0,'402: one request only, text restored, chat history clean');
+  ok(chatCalls()===n0+1 && $('input').value==='build a game' && ev('history.length')===0,'402: one request only, text restored, chat history clean');
   // Hebrew conversation -> Hebrew advice
   $('input').value='בנה לי משחק'; await ev('sendMessage()'); await sleep(20);
   ok(/אין יתרה/.test(chatText()),'Hebrew conversation gets Hebrew advice');
@@ -45,9 +46,9 @@ const chatText=()=>$('chat').textContent;
   chatMode='net'; $('input').value='hello'; await ev('sendMessage()'); await sleep(20);
   ok(/Network error/.test(chatText()) && /Could not reach OpenRouter/.test(chatText()),'network error + advice in chat');
   // unknown error -> model-written advice, counted in spend
-  chatMode='502'; const spent0=ev('totals.cost'); $('input').value='hello'; n0=calls.length; await ev('sendMessage()'); await sleep(40);
+  chatMode='502'; const spent0=ev('totals.cost'); $('input').value='hello'; n0=chatCalls(); await ev('sendMessage()'); await sleep(40);
   ok(/OpenRouter error 502: Provider returned error/.test(chatText()),'502 raw error in chat');
-  ok(calls.length===n0+2 && /The provider failed/.test(chatText()),'unknown error: model asked for advice');
+  ok(chatCalls()===n0+2 && /The provider failed/.test(chatText()),'unknown error: model asked for advice');
   ok(Math.abs(ev('totals.cost')-spent0-0.001)<1e-9,'advice call counted in session spend');
   // key test failure goes to chat, key text untouched
   chatMode='keybad'; await ev("testKey()"); await sleep(20);
@@ -62,9 +63,9 @@ const chatText=()=>$('chat').textContent;
   ok(/const a = 1;\nconst b = 2;/.test($('codePre').textContent),'code buffer complete');
   // spend limit: block, no request, no clearing; raise -> works
   console.log('cost now',ev('totals.cost')); $('budget').value='0.001'; $('budget').dispatchEvent(new w.Event('input'));
-  $('input').value='more'; n0=calls.length; const h=ev('history.length'); await ev('sendMessage()'); await sleep(30);
-  console.log('dbg',calls.length-n0, ev('exhausted()'), ev('notes.map(n=>n.text.slice(0,30))'), ev('history.length'), h);
-  ok(calls.length===n0 && /Spend limit reached/.test(chatText()) && ev('history.length')===h,'limit reached: message in chat, no request, chat kept');
+  $('input').value='more'; n0=chatCalls(); const h=ev('history.length'); await ev('sendMessage()'); await sleep(30);
+  console.log('dbg',chatCalls()-n0, ev('exhausted()'), ev('notes.map(n=>n.text.slice(0,30))'), ev('history.length'), h);
+  ok(chatCalls()===n0 && /Spend limit reached/.test(chatText()) && ev('history.length')===h,'limit reached: message in chat, no request, chat kept');
   $('budget').value='5'; $('budget').dispatchEvent(new w.Event('input'));
   ok(!$('send').disabled && ev('history.length')===h,'limit raised: send enabled, chat kept');
   w.confirm=()=>true; const tot=ev('totals.cost'); $('reset').click();
