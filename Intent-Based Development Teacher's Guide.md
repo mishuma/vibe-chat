@@ -1,11 +1,35 @@
 # Intent-Based Development: Teacher's Guide
 
-Version 0.1. Companion document: Intent-Based Development: Student Guide, version 0.1.
+Version 0.2. Companion document: Intent-Based Development: Student Guide, version 0.2.
 Author: Jeff Freilich. Replaces the Teacher Starter Guide of Oct 23, 2026.
 
 #### Teacher Note: Disclaimer: Age requirements
 
 Anthropic's consumer Claude accounts require users to be 18 or older. A third-party tracker reports that OpenRouter's August 2026 terms raised its minimum age to 18. This module is written for high school students, 9th grade and up. Each school and its instructors must reconcile these age requirements with the services' terms and the school's own policies before using the module. Responsibility for this rests with the school and its instructors, not with the module author.
+
+#### Teacher Note: Quick start (one page)
+
+The rest of this guide explains each step. This page is the order to do them in.
+
+**Once, before the workshop**
+
+1. Settle the age requirement with your school (disclaimer above).
+2. In OpenRouter, make a workspace for this class only. Create one key per team, give each a credit limit, and name it for the team. Create the workspace's Management key for the cost board (section 3).
+3. At openrouter.ai/settings/privacy, turn off routing to providers that may train on your data, for paid and for free models (section 3, "Privacy").
+4. Put the team keys in a CSV and check each one shows in tools/qr-key.html (section 3).
+5. Run set-up on every team's laptop (section 2). Do one full test with a low-limit key (pre-workshop checklist, item 5). Then delete the test key.
+
+**On the day**
+
+1. Close qr-key.html. Open dashboard/cost-board.html, paste the Management key, click Show keys, and start cycling or show Entire Class. Press F for full screen.
+2. Visit each team with qr-key.html on your laptop. The team scans its QR code, clicks Test, picks the model, enters the spend limit in Settings, and clicks Choose save folder to pick its vibe-chat folder (section 3.2).
+3. Draw the four steps on the board: Prompt, Paste, Run, Observe (section 4). Hand out the activity guide (section 5).
+4. While teams work, ask stuck teams "Which step are you on?" Watch the cost board.
+
+**Afterwards**
+
+1. In qr-key.html click Clear, then close it. Delete the key CSV.
+2. Delete the team keys in OpenRouter. This ends every team's access at once.
 
 #### Teacher Note: How to use this guide
 
@@ -42,6 +66,7 @@ Complete the text in [FILL IN: ...] brackets before class. Items marked [TO CONF
 | Activity guide students will use | [FILL IN: activity name and version, from "Available activities" in section 5] |
 | Model teams pick in vibe-chat | [FILL IN: the latest Claude Haiku, Sonnet, or Opus, or another model name] |
 | Spend limit teams enter in Settings | [FILL IN: dollar amount] |
+| Folder teams choose with Choose save folder | The vibe-chat folder made by the setup script, inside Documents (change if you used another) |
 | cost-board.html mode to start in | [FILL IN: whole class or each team] |
 | Where teams get vibe-chat-workshop.zip | [FILL IN: link or location] |
 | Who to contact for help, and where teams email setup-report.txt | [FILL IN: name and email] |
@@ -50,26 +75,26 @@ Complete the text in [FILL IN: ...] brackets before class. Items marked [TO CONF
 
 * **vibe-chat.html**: the chat page teams use (sections 3 to 5).
 * **vibe-chat-workshop.zip**: vibe-chat.html plus SETUP.txt and the Windows and Mac setup scripts (section 2).
-* **qr-key.html** and **test-keys.csv**: shows a key as a QR code, with 20 fake keys for practice (section 3).
-* **cost-board.html**: shows on the main screen the current token spend of every key in the class's OpenRouter workspace, for the whole class or for each team (section 3).
+* **tools/qr-key.html** and **tools/test-keys.csv**: shows a key as a QR code, with 20 fake keys for practice (section 3).
+* **dashboard/cost-board.html**: shows on the main screen how much money each team's OpenRouter key has left, one key at a time or for the whole class (section 3).
 * **token-usage-tracker**: an optional skill for Claude Code (Appendix A).
 * **Activity guides**: a Teacher's Guide and Student Guide pair for each activity (section 5).
-* **Source code**: <https://github.com/mishuma/vibe-chat>. A local copy is on Jeff's Mac at /Users/jeff/Github/personal/vibe-chat. [TO CONFIRM] Check that the repository holds the current source, qr-key.html, cost-board.html, and test-keys.csv. qr-key.html and cost-board.html have no known location. How to fix: add them to the repository and write their paths here.
+* **Source code**: <https://github.com/mishuma/vibe-chat>. All of the files above are in it, at the paths shown. vibe-chat-workshop.zip is not stored in the repository; build it with install/build-zip.sh.
 
 **Teacher Note: Technical detail (optional)**
 
-Edit src/app-template.html in the source folder, then run python3 build.py to regenerate vibe-chat.html. The commands npm install and npm test run the simulated-browser checks included in the folder. The QR reader is the jsQR library with its Japanese Kanji table removed, which does not affect API-key QR codes.
+vibe-chat.html is the only source file; edit it directly. The simulated-browser checks are listed in README.md: run npm install --no-save jsdom@26 once, then the five test files with node. After changing vibe-chat.html or anything in install/, run bash install/build-zip.sh to rebuild vibe-chat-workshop.zip. The QR reader is the jsQR library with its Japanese Kanji table removed, which does not affect API-key QR codes.
 
 #### Teacher Note: Pre-workshop checklist
 
 1. Read the age disclaimer at the top of this guide, and settle it with your school.
 2. Choose the activity (see section 5). Complete the activity guide's own fill-in table and before-class Teacher Notes.
-3. Set up OpenRouter. In a workspace used only for this class, create one key per team. Give each key a credit limit and name it for its team. Get the workspace's Management key for cost-board.html (see section 3).
+3. Set up OpenRouter. In a workspace used only for this class, create one key per team. Give each key a credit limit and name it for its team. Get the workspace's Management key for cost-board.html (see section 3). At openrouter.ai/settings/privacy, turn off routing to providers that may train on your data, for paid and for free models (see "Privacy" in section 3).
 4. Run the setup scripts on one real Windows laptop and one real Mac. Then run set-up on every team's laptop (section 2).
-5. With one low-limit test key, do a full round trip on a team laptop. Send a message, send a screenshot, send a PDF, scan a QR code, and watch the spend appear on cost-board.html. Check that the dollars in vibe-chat and on cost-board.html match OpenRouter's own figure.
-   [TO CONFIRM] Not yet verified against a real key: live streaming of code, attachments (images and PDFs), the Test button, the QR camera, how the paperclip and airplane icons look, and that OpenRouter reports cost in US dollars.
+5. With one low-limit test key, do a full round trip on a team laptop. Send a message, send a screenshot, send a PDF, scan a QR code, and watch the spend appear on cost-board.html. Choose the save folder, then use Save code, Save chat, Save memory and Load memory, and check the files appear in that folder. Check that the dollars in vibe-chat and on cost-board.html match OpenRouter's own figure. Check that the model you picked answers: if the chat says it is only offered by providers that may keep or train on what you send, pick another model.
+   [TO CONFIRM] Not yet verified against a real key: live streaming of code, attachments (images and PDFs), the Test button, the QR camera, how the paperclip and airplane icons look, the privacy setting with each model choice, saving to a folder in real Chrome and Edge, and that OpenRouter reports cost in US dollars.
 6. Try the QR scan with test-keys.csv (see 3.2).
-7. Start cost-board.html on the main screen once in each mode. Check that the Management key is concealed after you paste it, and that no secret key appears on screen (see section 3).
+7. Start cost-board.html on the main screen once with a single key, once cycling, and once with Entire Class. Check that no secret key appears on screen (see section 3).
 8. Delete the test key before class. The board reads every key in the workspace, so a test key would appear on the board and count in the whole-class total.
 9. If you plan to use Appendix A, test it too (see the Teacher Notes there).
 10. Write down where each file lives, and fill in every [TO CONFIRM] in this guide.
@@ -81,6 +106,7 @@ This guide is the master. The Student Guide is made from it. To change what stud
 
 | Version | Date | What changed in this guide | Student guide updated |
 | :---- | :---- | :---- | :---- |
+| 0.2 | 2026-11-17 | Quick start page. Privacy setting in vibe-chat and in OpenRouter. Choose save folder in the top bar; the Files tab shows the latest code; Save code, Save chat and Save memory all use the save folder; Load memory answered. Cost board section rewritten to match the board. Kit paths, build steps and the skill file answered. | Yes, version 0.2 |
 | 0.1 | 2026-11-02 | First version. Made from the Teacher Starter Guide (Oct 23, 2026) in the paired-guide format. Generic tool guide with an activity slot (section 5). Set-up done before the session. One key per team, teams of 1 or 2 with one laptop. cost-board.html. Age disclaimer. Saved chats, memory, and skills in optional Appendix A. Trademarks in Appendix B. | Yes, version 0.1 |
 
 ### 1. Introduction
@@ -91,7 +117,7 @@ This guide is the master. The Student Guide is made from it. To change what stud
 
 Intent-based development (often called vibe coding) means students describe what they want in plain language, an AI writes the code, and students test the result and refine it by describing what is wrong.
 
-Students use vibe-chat, one web page that opens in a browser. The chat is on the left. On the right is a read-only code window with a Copy code button. Students describe what they want, copy the finished code into their testing app, see whether it works, and return to the chat to describe what is wrong. The testing app, and the task itself, come from the activity guide (section 5).
+Students use vibe-chat, one web page that opens in a browser. The chat is on the left. On the right is a read-only code window with Copy code and Save code buttons, and a Files tab that holds the latest code and any other files the AI makes, such as notes or images. Students describe what they want, copy the finished code into their testing app, see whether it works, and return to the chat to describe what is wrong. The testing app, and the task itself, come from the activity guide (section 5).
 
 The student's job is to describe the goal and test the result. The AI writes the code. The student decides whether the result matches the goal.
 
@@ -171,9 +197,12 @@ There are two limits:
 4. Open Settings and enter the spend limit: [FILL IN: dollar amount].
    **Look for:** A colored bar at the top runs from green to red as the session spends toward the spend limit. The text beside it shows dollars spent out of the limit. A panel shows tokens in, tokens out, and cost for the last turn, plus the session total. A tilde (~) marks an estimate.
    **Troubleshooting: The bar stays empty:** No spend limit is set, and nothing is stopped. Enter the limit in Settings.
-   **Troubleshooting: The team closed or reloaded the tab:** The key is kept only while the tab is open. The team enters it again. The spending totals restart, but the spend limit stays saved in the browser.
+   **Troubleshooting: The team closed or reloaded the tab:** The key is kept only while the tab is open. The team enters it again, and chooses the save folder again (step 5). The spending totals restart, but the spend limit stays saved in the browser.
+5. Click Choose save folder in the top bar and pick the team's vibe-chat folder in Documents (the folder the setup script made). The top bar then shows "Saving to: vibe-chat." Everything the team saves goes there.
+   **Troubleshooting: Chrome says the folder "contains system files":** Chrome does not allow Documents, Desktop, Downloads or the home folder themselves. Pick the vibe-chat folder inside Documents.
+   **Troubleshooting: There is no Choose save folder button, or it does nothing:** The browser is not Chrome or Edge. Saving still works; each file goes to the Downloads folder.
 
-**Teacher checkpoint.** Check that each team has a passing Test, the right model, and a spend limit set.
+**Teacher checkpoint.** Check that each team has a passing Test, the right model, a spend limit set, and "Saving to: vibe-chat" in the top bar.
 
 **Teacher Note: Before class: create and share keys**
 
@@ -200,30 +229,42 @@ CSV reading and the arrows passed in a simulated browser only. A row with fewer 
 
 **Teacher Note: Show spending on the main screen: cost-board.html**
 
-cost-board.html shows the current token spend of each team's OpenRouter API key, so the class can watch spending during the workshop. It reads every key in the workspace through the workspace's Management key.
+cost-board.html shows how much money each team's OpenRouter API key has left, so the class can watch spending during the workshop. It reads every key in the workspace through the workspace's Management key. It only reads keys and never changes them.
 
-*The Management key.* It belongs to the OpenRouter workspace and can read and manage every API key in it. Only you use it. Never give it to students, put it in the CSV, or show it in qr-key.html. You copy it into cost-board.html. Once pasted, its value is concealed, so you can show the page to the class.
+*The Management key.* It belongs to the OpenRouter workspace and can create and delete every API key in it. Only you use it. Never give it to students, put it in the CSV, or show it in qr-key.html. Create it on openrouter.ai at Settings, then Management Keys; a regular API key does not work. The board never displays it after you paste it. It is kept only in that browser tab unless you tick Remember, so leave Remember unticked on shared computers.
 
-*Two modes, set at start.* You choose the mode when you start the board. To switch modes, start the board again.
+*What the board can show.* You choose after clicking Show keys. Esc goes back to the key list, so you can change at any time.
 
-| Mode | What the class sees |
+| Choice | What the class sees |
 | :---- | :---- |
-| Whole class | The total spend of every key in the workspace |
-| Each team | The spend of each team's key, one line per team |
+| Click one key | That team's key only |
+| Start cycling | Each enabled key in the workspace in turn, with its name in large type, so each team can find its own. Pick how many seconds to show each key (1 to 60). Space pauses; the arrow keys step back and forward |
+| Include Entire Class (tick before cycling) | Adds the class total to the cycle, shown first |
+| Show Entire Class only | All keys in the workspace added together |
 
-1. Open cost-board.html by double-clicking it.
-2. Paste the workspace's Management key into the page. The value is concealed once pasted.
-3. Choose the mode: [FILL IN: whole class or each team]. [TO CONFIRM] How you choose the mode at start.
-4. Put the board on the main screen. [TO CONFIRM] Whether it updates on its own, and how often.
+1. Open dashboard/cost-board.html by double-clicking it.
+2. Paste the workspace's Management key and click Show keys. Keys from every workspace in the account are listed, grouped by workspace.
+3. Make your choice from the table: [FILL IN: one key, cycling, or Entire Class].
+4. Press F for full screen. T switches light and dark (use light in a bright room). L switches between English with dollars and Hebrew with shekels.
 5. Afterwards, close the tab.
 
 **Good to know**
 
-* Every key in the workspace appears on the board, and the whole-class total counts all of them. Keep only the team keys in this workspace, and delete test keys before class.
-* With one key per team, each line on the board is one team.
-* The board reads spending from OpenRouter. Its totals keep counting when a team reloads vibe-chat, unlike the session totals in vibe-chat. [TO CONFIRM] Whether the board shows spending since each key was created or for today only.
+* Each key shows the money left under its credit limit, or the money it has spent if it has no limit. Entire Class shows money left only if every key has a limit.
+* Below that, "Spent this class" counts from when you opened the board, so it shows only today's session. "Last AI request" and "At this pace" (dollars per hour) are there too.
+* The board checks for new spending every 5 seconds by default; you can pick another interval before you start. If OpenRouter says "too many requests," pick a slower one.
+* Every key in the workspace appears on the board, and Entire Class counts all of them. Keep only the team keys in this workspace, and delete test keys before class.
+* The board reads spending from OpenRouter, so its totals keep counting when a team reloads vibe-chat, unlike the session totals in vibe-chat.
 
-**[TO CONFIRM] Test status:** I have no test notes for cost-board.html. How to fix: include it in checklist items 5 and 7.
+**Test status:** 85 simulated-browser checks pass (dashboard/cost-board.test.js). It has not been run against a real Management key; checklist items 5 and 7 cover that.
+
+**Teacher Note: Privacy**
+
+vibe-chat asks OpenRouter to send every message only to providers that do not store or train on what students send, including screenshots and PDFs. For the same protection outside vibe-chat, set it for the whole account too: at openrouter.ai/settings/privacy, turn off routing to providers that may train on your data, for paid and for free models. OpenRouter also offers a stricter Zero Data Retention setting there; it may make more models unavailable.
+
+Some models are offered only by providers that may keep or train on data. vibe-chat then refuses the model and tells the team, in the chat, to pick another one. The Claude models in the list are not affected.
+
+Voice typing (the mic button) uses the browser's speech recognition. Chrome and Edge send the audio to Google or Microsoft. vibe-chat shows a notice about this the first time a team uses it.
 
 **Teacher Note: Choosing a model**
 
@@ -287,6 +328,7 @@ Draw the four steps on the board before teams start the activity. If a team skip
 4. Wait for the AI to finish. Code appears in the code window on the right. Read the reply.
    **Troubleshooting: Send is greyed out:** The spend bar is full. Raising the limit in Settings turns Send back on and keeps the chat. [FILL IN: whether teams may raise it or must ask you]
    **Troubleshooting: An error from OpenRouter appears in the chat:** The team's key may have reached its credit limit. The team tells you.
+   **Troubleshooting: The chat says the model is only offered by providers that may keep or train on what you send:** Choose another model, such as one of the Claude options. See "Privacy" in section 3.
 
 **Starting over:** Reset conversation clears the chat and starts a new conversation. The session's spending totals keep counting. Teams use it only when the activity guide or you say so.
 
@@ -301,6 +343,12 @@ A reply's cost is known only after it finishes, so spending can land slightly ov
 2. Click Copy code. In the testing app, replace everything with the new code.
 3. If the testing app shows errors, copy the exact error text or paste a screenshot into the message box. Ask: "I got these errors. Please return the complete corrected code."
 4. Replace all the code with the new version. Repeat until there are no errors.
+
+**Saving your work.** Nothing is saved on the laptop until the team presses a Save button. Everything goes to the folder chosen in section 3.2.
+
+* **Save code** (above the code window) saves the latest code as program.ts (or .py or .js). Saving again never replaces an earlier file: the next one is program (2).ts, and so on.
+* **The Files tab** shows the latest code at the top, then any other files the AI made, such as notes, a table or an image. Each has its own Save button. Save all as zip downloads them all in one file, including the code.
+* Files in the Files tab are lost when the tab is closed or Reset is clicked. The browser warns first if any were never saved.
 
 **Teacher Note: Coaching**
 
@@ -391,7 +439,7 @@ To build a new activity, copy the Cutebot Explorer for vibe-chat guides as a tem
 
 #### 5.2 Questions
 
-* Show cost-board.html in each-team mode. If it is running in whole-class mode, start it again in each-team mode. Poll the class: "Which team has used the most tokens so far? What did they do differently?"
+* Put cost-board.html in cycling mode so each team's key is shown in turn (press Esc and click Start cycling if it is showing one key or Entire Class). Poll the class: "Which team has used the most tokens so far? What did they do differently?"
 * **Listen for:** more rounds, longer messages, screenshots and files, or a more capable model.
 
 ### 6. Summary of Learning Objectives
@@ -417,19 +465,19 @@ To build a new activity, copy the Cutebot Explorer for vibe-chat guides as a tem
 
 #### A.1 Concept: How the AI remembers
 
-Two teaching buttons show how memory works. Save chat downloads the conversation as a markdown file. Save memory has the model summarize the conversation into a markdown memory file that a team can load into a new conversation.
+Two teaching buttons show how memory works. Save chat saves the conversation as a markdown file. Save memory has the model summarize the conversation into a markdown memory file that a team can load into a new conversation.
 
 #### A.2 Extension: Save and reload a memory
 
-1. Click Save chat. The conversation downloads as a markdown file.
-2. Click Save memory. The AI summarizes the conversation into a memory file. The summary costs a few tokens, which count toward spending.
+1. Click Save chat. The conversation is saved in the save folder as conversation-(date and time).md. The chat says where it went.
+2. Click Save memory. The button says "Saving memory…" while the AI summarizes the conversation. The memory file, memory-(date and time).md, goes in the save folder, and the summary appears in the chat. The summary costs a few tokens, which count toward spending.
 3. Click Reset conversation. The chat starts over, but the session's spending totals keep counting.
-4. Load the memory file into the new conversation. [TO CONFIRM: how teams load the memory file]
+4. Click Load memory. The file picker opens in the save folder. Choose the memory file. A Memory label with the file name appears above the chat.
 5. Ask the AI about your earlier work.
 
 **Teacher Note: Before you use this appendix**
 
-Test it on a team laptop with a low-limit key: save the chat, then save and load a memory. [TO CONFIRM] File downloads have not been verified against a real key.
+Test it on a team laptop with a low-limit key: save the chat, then save and load a memory. If no save folder was chosen, Save chat and Save memory open a save dialog in Chrome and Edge (Save memory asks before it sends anything, so cancelling costs nothing), or download to the Downloads folder in other browsers. [TO CONFIRM] Saving has been checked only in a simulated browser, not in real Chrome, Edge, Safari or Firefox.
 
 #### A.3 Questions
 
@@ -438,7 +486,7 @@ Test it on a team laptop with a low-limit key: save the chat, then save and load
 
 **Teacher Note: The Settings skill file**
 
-Settings in vibe-chat holds an optional skill file. [TO CONFIRM] What it does, and whether teams use it.
+Settings in vibe-chat holds an optional skill file: a markdown file of instructions the AI follows in every reply. It is added to the system prompt, so it costs tokens with every message. It stays loaded after Reset and after reloading the page, until the team clicks Remove skill. No activity uses it, and teams do not need it. Settings also has Extra instructions (up to 4,000 characters), which work the same way. Show the exact system prompt, in Settings, displays everything that is sent.
 
 **Teacher Note: Claude Code and the token-usage-tracker skill (optional, technical)**
 

@@ -110,8 +110,9 @@
   #codeActions{display:flex;gap:8px;align-items:center}
   #filesWrap{flex:1;overflow:auto;display:flex;flex-direction:column;background:#fafaf8}
   #filesBar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--line);background:var(--panel);position:sticky;top:0;z-index:1}
-  #folderChip{font-size:12px;background:#e9eef6;border-radius:999px;padding:1px 4px 1px 10px;direction:ltr}
-  #folderChip button{border:none;background:transparent;padding:0 6px;font-size:15px;line-height:1.2;color:var(--muted)}
+  #folderChip{align-self:center;font-size:12px;background:#e9eef6;border-radius:999px;padding:1px 4px 1px 10px;direction:ltr}
+  header #folderChip button{height:auto;border:none;background:transparent;padding:0 6px;font-size:15px;line-height:1.2;color:var(--muted)}
+  .fcard.code{border-color:var(--accent)}
   #filesList{padding:12px;display:flex;flex-direction:column;gap:12px}
   .fcard{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden}
   .fcard.flash{border-color:var(--accent);box-shadow:0 0 0 3px rgba(47,91,234,.18)}
@@ -170,6 +171,8 @@
     <datalist id="models"></datalist>
   </label>
   <span class="spacer"></span>
+  <span id="folderChip" hidden><span id="folderName"></span><button id="folderStop" type="button" title="Stop saving to this folder" aria-label="Stop saving to this folder">×</button></span>
+  <button id="pickFolder" type="button" title="Choose a folder once. Save code, Save chat, Save memory and the Files tab then all write straight into it">Choose save folder…</button>
   <button id="settings" type="button">Settings</button>
   <button id="reset" type="button">Reset conversation</button>
 </header>
@@ -275,8 +278,7 @@
     <div id="codeWrap" role="tabpanel"><pre id="codePre" class="placeholder">No code yet. When the model writes code, it appears here and is replaced by each new version.</pre></div>
     <div id="filesWrap" role="tabpanel" hidden>
       <div id="filesBar">
-        <button id="pickFolder" type="button" title="Choose a folder once, then Save writes straight into it">Choose save folder…</button>
-        <span id="folderChip" hidden><span id="folderName"></span><button id="folderStop" type="button" title="Stop saving to this folder" aria-label="Stop saving to this folder">×</button></span>
+        <span id="filesFolder" class="fmeta"></span>
         <span class="spacer"></span>
         <button id="restoreAll" type="button" hidden>Restore discarded</button>
         <button id="saveZip" type="button" disabled>Save all as zip</button>
@@ -290,6 +292,10 @@
 <script>
 /* ================= CONFIG (safe to edit) ================= */
 const API = "https://openrouter.ai/api/v1";
+// Every request asks OpenRouter to use only providers that do not store or train on prompts. Students' messages,
+// screenshots and PDFs therefore never go to a provider with a data-collection policy. If no such provider serves the
+// chosen model, OpenRouter refuses the request and the student is told to pick another model (errPrivacy).
+const PRIVACY = {data_collection:'deny'};
 const FALLBACK_MODEL = {haiku:"anthropic/claude-haiku-4.5", sonnet:"anthropic/claude-sonnet-4.5", opus:"anthropic/claude-opus-4.1"}; // used only if the live model list can't be loaded
 const FALLBACK_WINDOW = 128000;   // used only if the model's context size is unknown
 const MAX_ATTACHMENTS = 5;
@@ -310,7 +316,7 @@ function codeRule(lang){
     one.replace('fenced block', 'fenced block tagged with that language');
   return `When code is needed, write ${c.label}. ` + one.replace('fenced block', `fenced block tagged ${c.tag}`);
 }
-const SYSTEM_PROMPT_BASE = `You are a coding partner for college students who are not programmers.
+const SYSTEM_PROMPT_BASE = `You are a coding partner for high school students who are not programmers.
 Reply in the language the student writes in. Be terse: answer only what was asked.
 Never invent facts, APIs, settings, or causes of errors. If you do not know, say so. If something is unclear, ask ONE short question instead of guessing.
 Write plain text only: short paragraphs, no markdown, no bold, no headers, no bullet symbols, no emojis, no backticks. The only exceptions are the fenced blocks described below.
@@ -375,6 +381,7 @@ const T = {
     err401:"The key was rejected. Check that the whole key was copied, or scan it again.",
     err402:"The key or account has no credit left. Ask whoever gave you the key for one with more credit.",
     err404:"Model not found. Choose one of the Claude options in the model list, or check the model id.",
+    errPrivacy:"This model is only offered by providers that may keep or train on what you send, so vibe-chat does not use it. Choose another model, such as one of the Claude options.",
     err413:"The message is too large. Remove an attachment or press Reset conversation.",
     err429:"Too many requests. Wait a little and press Send again.",
     errNet:"Could not reach OpenRouter. Check your internet connection and press Send again.",
@@ -388,8 +395,11 @@ const T = {
     voiceOther:"Voice typing stopped because of an error. You can try again or type your message.",
     voicePrivacy:"Voice typing sends your voice to your browser's speech service (Google for Chrome, Microsoft for Edge). Do not dictate anything private.",
     nothingToSave:"Nothing to save yet. Have a conversation first.",
-    chatSaved:f=>`Conversation saved as ${f}.`,
-    memSaved:f=>`Memory saved as ${f}. It contains the summary below plus your latest code. After Reset, use Load memory to give it to a new conversation.`,
+    chatSaved:(f,w)=>`Conversation saved as ${f}${w}.`,
+    inFolder:n=>` in the ${n} folder`, inDownloads:' in your Downloads folder',
+    memWorking:'Saving memory…', codeCardMeta:s=>`Latest code · ${s}`, codeCardTitle:'Save the latest code as a file',
+    savingTo:n=>`Saving to: ${n}`, noFolder:'No save folder chosen: Save asks where each file goes. Use Choose save folder at the top to pick one.',
+    memSaved:(f,w)=>`Memory saved as ${f}${w}. It has the summary below plus your latest code. To continue later: press Reset conversation, then Load memory and choose this file.`,
     memLoaded:f=>`Memory loaded: ${f}. The model will use it from your next message.`,
     memBig:(f,kb)=>`${f} is larger than ${kb} KB. A memory file this large would add a high cost to every message.`,
     memBad:f=>`${f} is empty or not a text file. Attach the markdown (.md) memory file you saved.`,
@@ -432,6 +442,7 @@ const T = {
     err401:"המפתח נדחה. ודאו שהמפתח הועתק במלואו, או סרקו אותו שוב.",
     err402:"אין יתרה במפתח או בחשבון. בקשו ממי שנתן לכם את המפתח מפתח עם יתרה נוספת.",
     err404:"המודל לא נמצא. בחרו אחת מאפשרויות Claude ברשימת המודלים, או בדקו את מזהה המודל.",
+    errPrivacy:"המודל הזה מוצע רק על ידי ספקים שעשויים לשמור את מה שאתם שולחים או לאמן עליו, ולכן vibe-chat לא משתמש בו. בחרו מודל אחר, למשל אחת מאפשרויות Claude.",
     err413:"ההודעה גדולה מדי. הסירו קובץ מצורף או לחצו על Reset conversation.",
     err429:"יותר מדי בקשות. המתינו מעט ולחצו שוב על שליחה.",
     errNet:"אין חיבור ל-OpenRouter. בדקו את חיבור האינטרנט ולחצו שוב על שליחה.",
@@ -445,8 +456,11 @@ const T = {
     voiceOther:"ההקלדה הקולית נעצרה בגלל שגיאה. אפשר לנסות שוב או להקליד את ההודעה.",
     voicePrivacy:"הקלדה קולית שולחת את הקול שלכם לשירות הדיבור של הדפדפן (Google ב-Chrome, Microsoft ב-Edge). אל תכתיבו דבר פרטי.",
     nothingToSave:"אין עדיין מה לשמור. נהלו קודם שיחה.",
-    chatSaved:f=>`השיחה נשמרה בקובץ ${f}.`,
-    memSaved:f=>`הזיכרון נשמר בקובץ ${f}. הוא כולל את הסיכום שלהלן ואת הקוד האחרון שלכם. אחרי Reset, השתמשו ב-Load memory כדי להעביר אותו לשיחה חדשה.`,
+    chatSaved:(f,w)=>`השיחה נשמרה בקובץ ${f}${w}.`,
+    inFolder:n=>` בתיקייה ${n}`, inDownloads:' בתיקיית ההורדות (Downloads)',
+    memWorking:'שומר זיכרון…', codeCardMeta:s=>`הקוד האחרון · ${s}`, codeCardTitle:'שמירת הקוד האחרון כקובץ',
+    savingTo:n=>`שומר אל: ${n}`, noFolder:'לא נבחרה תיקיית שמירה: בכל שמירה תישאלו לאן. השתמשו ב-Choose save folder למעלה כדי לבחור תיקייה.',
+    memSaved:(f,w)=>`הזיכרון נשמר בקובץ ${f}${w}. הוא כולל את הסיכום שלהלן ואת הקוד האחרון שלכם. כדי להמשיך מאוחר יותר: לחצו על Reset conversation, ואז על Load memory ובחרו את הקובץ הזה.`,
     memLoaded:f=>`הזיכרון נטען: ${f}. המודל ישתמש בו מההודעה הבאה שלכם.`,
     memBig:(f,kb)=>`הקובץ ${f} גדול מ-${kb} KB. קובץ זיכרון כזה יוסיף עלות גבוהה לכל הודעה.`,
     memBad:f=>`הקובץ ${f} ריק או שאינו קובץ טקסט. צרפו את קובץ ה-markdown (.md) ששמרתם.`,
@@ -1026,19 +1040,46 @@ function renderTabs(){
   $('codeWrap').hidden = files; $('filesWrap').hidden = !files; $('codeActions').hidden = files;
 }
 function showTab(t){ activeTab=t; renderTabs(); }
+// The latest code is pinned at the top of the Files tab, so code and other files are saved from one place, to one folder.
+// It is not a tray file: it cannot be discarded, and a newer version replaces it.
+const codeFile = () => { const code = latestCode(); return code ? {name:'program.'+codeExt(), text:code} : null; };
+let codeStatus = null;            // {text, status}: the last time this exact code was saved or downloaded
+async function saveLatestCode(){
+  const c = codeFile(); if(!c || busy) return null;
+  const r = await saveText(c.name, c.text, c.name.split('.').pop());
+  if(r){ codeStatus = {text:c.text, status:r}; renderNow(); }
+  return r;
+}
+function codeCard(c){
+  const status = codeStatus && codeStatus.text===c.text ? codeStatus.status : '';
+  const card = el('div','fcard code'); card.dataset.name = c.name; card.dataset.code = '1';
+  const head = el('div','fhead');
+  const nm = el('span','fname'); nm.textContent = c.name;
+  const meta = el('span','fmeta'); meta.textContent = tr('codeCardMeta', sizeLabel(c.text));
+  const st = el('span','fstatus'); if(status) st.textContent = tr(status==='saved' ? 'fileSaved' : 'fileDownloaded');
+  const save = el('button','fsave primary'); save.type='button'; save.textContent='Save'; save.disabled=busy;
+  save.title = tr('codeCardTitle'); save.onclick = saveLatestCode;
+  head.append(nm, meta, st, el('span','spacer'), save);
+  const body = el('div','fbody'), pre = el('pre','hl'); pre.dir='ltr';
+  renderTuples(pre, codeTuples()); body.appendChild(pre);
+  card.append(head, body);
+  return card;
+}
 function renderFiles(){
-  const all = trayFiles(), shown = all.filter(f=>!discarded.has(f.id)), hiddenCount = all.length - shown.length;
+  const all = trayFiles(), shown = all.filter(f=>!discarded.has(f.id)), hiddenCount = all.length - shown.length, code = codeFile();
   $('filesBadge').textContent = String(shown.length); $('filesBadge').hidden = !shown.length;
-  $('saveZip').disabled = !shown.some(f=>!f.open);
+  $('saveZip').disabled = !shown.some(f=>!f.open) && !code;
   $('restoreAll').hidden = !hiddenCount;
   $('folderHint').hidden = !!folder || typeof window.showDirectoryPicker!=='function';
-  $('folderChip').hidden = !folder; $('folderName').textContent = folder ? 'Folder: '+folder.name : '';
+  $('folderChip').hidden = !folder; $('folderName').textContent = folder ? tr('savingTo', folder.name) : '';
+  $('filesFolder').textContent = folder ? tr('savingTo', folder.name) : (typeof window.showDirectoryPicker==='function' ? tr('noFolder') : '');
   $('pickFolder').textContent = folder ? 'Change folder…' : 'Choose save folder…';
-  const key = [curLang(), hiddenCount, ...shown.map(f=>[f.id,f.text.length,f.open?1:0,fileStatus.get(f.id)||''].join('|'))].join('\n');
+  const codeKey = code ? [code.name, code.text, busy?1:0, codeStatus && codeStatus.text===code.text ? codeStatus.status : '', codeLang].join('|') : '';
+  const key = [curLang(), hiddenCount, codeKey, ...shown.map(f=>[f.id,f.text.length,f.open?1:0,fileStatus.get(f.id)||''].join('|'))].join('\n');
   if(key===shownFilesKey) return;
   shownFilesKey = key;
   const list = $('filesList');
-  list.replaceChildren(...(shown.length ? shown.map(fileCard) : [emptyFiles()]));
+  list.replaceChildren(...(code ? [codeCard(code)] : []), ...(shown.length ? shown.map(fileCard) : [emptyFiles()]));
 }
 function openFile(name){
   showTab('files');
@@ -1067,27 +1108,43 @@ async function freeName(dir, name){
   throw new Error('too many copies of '+name);
 }
 async function writeHandle(handle, text){ const w=await handle.createWritable(); await w.write(text); await w.close(); }
-// Returns 'saved', 'downloaded', or null if the student cancelled. Never overwrites an existing file in a chosen folder.
-async function saveText(name, rawText, ext){
-  const mime = FILE_MIME[ext] || 'text/plain', text = fileBody(ext, rawText);
-  try{
-    if(folder){
-      const got = await freeName(folder.handle, name);
-      await writeHandle(await folder.handle.getFileHandle(got,{create:true}), text);
-      if(got!==name) noteT('fileRenamed', name, got);
-      return 'saved';
-    }
-    if(typeof window.showSaveFilePicker==='function'){
-      const h = await window.showSaveFilePicker({suggestedName:name, types:[{description:name, accept:{[mime]:['.'+ext]}}]});
-      await writeHandle(h, text);
-      return 'saved';
-    }
-  }catch(e){
-    if(e && e.name==='AbortError') return null;
-    if(folder){ folder=null; noteT('saveFail', name); return null; }   // the folder is gone or no longer allowed: drop it so the next Save asks again
-    download(name, text, mime+';charset=utf-8'); noteT('saveInstead', name); return 'downloaded';
+// Every save (code, files, chat, memory) goes the same way: into the folder the student chose, else through the
+// browser's save dialog (Chrome and Edge), else to the Downloads folder. A file in the chosen folder is never overwritten.
+// Choosing where comes first, so Save memory can open the dialog before its request (a dialog needs a fresh click).
+// Returns {kind:'folder'|'handle'|'download'}, or null if the student cancelled the dialog.
+async function saveTarget(name, ext){
+  if(folder) return {kind:'folder', folder};
+  if(typeof window.showSaveFilePicker==='function'){
+    const mime = FILE_MIME[ext] || 'text/plain';
+    try{ return {kind:'handle', handle: await window.showSaveFilePicker({id:'vibe-chat-files', suggestedName:name, types:[{description:name, accept:{[mime]:['.'+ext]}}]})}; }
+    catch(e){ if(e && e.name==='AbortError') return null; return {kind:'download', blocked:true}; }
   }
-  download(name, text, mime+';charset=utf-8'); return 'downloaded';
+  return {kind:'download'};
+}
+// Writes to a target from saveTarget. Returns {status:'saved'|'downloaded', name, where} or null if nothing was saved.
+async function writeTarget(t, name, rawText, ext){
+  const mime = FILE_MIME[ext] || 'text/plain', text = fileBody(ext, rawText);
+  if(t.kind==='folder'){
+    try{
+      const got = await freeName(t.folder.handle, name);
+      await writeHandle(await t.folder.handle.getFileHandle(got,{create:true}), text);
+      if(got!==name) noteT('fileRenamed', name, got);
+      return {status:'saved', name:got, where:t.folder.name};
+    }catch{ if(folder===t.folder) folder=null; noteT('saveFail', name); return null; }   // the folder is gone or no longer allowed: drop it so the next Save asks again
+  }
+  if(t.kind==='handle'){
+    try{ await writeHandle(t.handle, text); return {status:'saved', name:t.handle.name||name}; }
+    catch{ download(name, text, mime+';charset=utf-8'); noteT('saveInstead', name); return {status:'downloaded', name}; }
+  }
+  download(name, text, mime+';charset=utf-8'); if(t.blocked) noteT('saveInstead', name);
+  return {status:'downloaded', name};
+}
+// Where a saved file went, for the chat notice: " in the vibe-chat folder", " in your Downloads folder", or nothing if the student picked the place.
+const whereText = r => r.where ? tr('inFolder', r.where) : r.status==='downloaded' ? tr('inDownloads') : '';
+// Returns 'saved', 'downloaded', or null if nothing was saved.
+async function saveText(name, rawText, ext){
+  const t = await saveTarget(name, ext); if(!t) return null;
+  const r = await writeTarget(t, name, rawText, ext); return r && r.status;
 }
 async function saveFile(f){
   if(f.open || saving.has(f.id)) return;
@@ -1151,15 +1208,16 @@ $('restoreAll').onclick = () => { discarded.clear(); renderNow(); };
 $('pickFolder').onclick = pickFolder;
 $('folderStop').onclick = () => { folder = null; renderNow(); };
 $('saveZip').onclick = () => {
-  const files = visibleFiles().filter(f=>!f.open);
-  if(!files.length) return;
-  try{ download('vibe-chat-files-'+stamp()+'.zip', zipBytes(files), 'application/zip'); files.forEach(f=>fileStatus.set(f.id,'downloaded')); }
+  const files = visibleFiles().filter(f=>!f.open), code = codeFile();
+  if(!files.length && !code) return;
+  // The latest code goes in too, unless a file of the same name is already in the tray.
+  const withCode = code && !files.some(f=>f.name.toLowerCase()===code.name.toLowerCase()) ? [code, ...files] : files;
+  try{ download('vibe-chat-files-'+stamp()+'.zip', zipBytes(withCode), 'application/zip'); files.forEach(f=>fileStatus.set(f.id,'downloaded')); if(code) codeStatus={text:code.text, status:'downloaded'}; }
   catch{ noteT('zipFail'); }
   renderNow();
 };
 $('saveCode').onclick = async () => {
-  const code = latestCode(); if(!code || busy) return;
-  const ext = codeExt(), r = await saveText('program.'+ext, code, ext);
+  const r = await saveLatestCode();
   if(!r) return;
   const b = $('saveCode'); b.textContent = tr(r==='saved' ? 'fileSaved' : 'fileDownloaded');
   setTimeout(()=>{ b.textContent='Save code'; }, FLASH_MS);
@@ -1234,13 +1292,15 @@ function addSpend(usage, model){
 // Errors where the same key or connection would fail again get fixed, built-in advice. Anything else is explained by the model itself,
 // in the student's language, using only the error text; if that is not possible the app asks the student a question instead.
 const FIXED_ADVICE = {401:'err401',402:'err402',404:'err404',413:'err413',429:'err429'};
+// OpenRouter's refusal when no provider for the model meets the privacy setting ("No endpoints found matching your data policy").
+const PRIVACY_ERROR = /data policy|data_collection|privacy/i;
 async function reportError(e, sample){
   const lang=curLang(sample);
   const detail=(e.detail||'').replace(/\s+/g,' ').trim();
   const raw = e.api ? ['OpenRouter error', e.status].filter(Boolean).join(' ') + (detail ? ': '+(detail.length>160 ? detail.slice(0,160)+'…' : detail) : '')
                     : 'Network error: could not reach openrouter.ai';
   const n=note('', raw);
-  const fixed = e.api ? FIXED_ADVICE[e.status] : 'errNet';
+  const fixed = !e.api ? 'errNet' : PRIVACY_ERROR.test(e.detail||'') ? 'errPrivacy' : FIXED_ADVICE[e.status];
   if(fixed){ n.text=trL(lang,fixed); render(); return; }
   const advice = await adviseWithModel(e, sample);
   n.text = advice || trL(lang,'errUnknown'); render();
@@ -1250,7 +1310,7 @@ async function adviseWithModel(e, sample){
   if(!key || !model || exhausted()) return null;
   try{
     const r=await fetch(API+'/chat/completions',{method:'POST',headers:headers(key),body:JSON.stringify({
-      model, stream:false, max_tokens:200, usage:{include:true},
+      model, stream:false, max_tokens:200, usage:{include:true}, provider:PRIVACY,
       messages:[{role:'system',content:ADVICE_PROMPT},
                 {role:'user',content:`OpenRouter error ${e.status??''}: ${e.detail||'(no message)'}\n\nThe student's last message (use it only to choose the language to answer in):\n${(sample||lastUserText()).slice(0,300)}`}]
     })});
@@ -1304,7 +1364,7 @@ async function sendMessage(){
   try{
     const r=await fetch(API+'/chat/completions',{
       method:'POST', signal:controller.signal, headers:headers(key),
-      body:JSON.stringify({model, messages:apiMessages, stream:true, usage:{include:true}})
+      body:JSON.stringify({model, messages:apiMessages, stream:true, usage:{include:true}, provider:PRIVACY})
     });
     if(!r.ok){
       let m=''; try{ m=(await r.json()).error?.message||''; }catch{}
@@ -1546,11 +1606,13 @@ function transcript(){
   }).join('\n\n');
 }
 // Save chat: the whole conversation as a readable markdown file. Images and PDFs are listed by name only.
-$('saveChat').onclick=()=>{
+$('saveChat').onclick=async()=>{
+  if(busy) return;
   if(!history.length){ noteT('nothingToSave'); return; }
   const f=`conversation-${stamp()}.md`;
-  download(f, `# Conversation\n\nSaved: ${new Date().toISOString()}\nModel: ${currentModel()||'(none)'}\n\n${transcript()}\n`);
-  infoT('chatSaved', f);
+  const t=await saveTarget(f,'md'); if(!t) return;
+  const r=await writeTarget(t, f, `# Conversation\n\nSaved: ${new Date().toISOString()}\nModel: ${currentModel()||'(none)'}\n\n${transcript()}\n`, 'md');
+  if(r) infoT('chatSaved', r.name, whereText(r));
 };
 // Save memory: the model summarizes the conversation (a normal paid request), the app appends the latest code verbatim.
 $('saveMem').onclick=async()=>{
@@ -1560,11 +1622,15 @@ $('saveMem').onclick=async()=>{
   if(exhausted()){ budgetNoted=true; noteT('exhausted'); return; }
   if(!key){ noteT('needKey'); return; }
   if(!model){ noteT('needModel'); return; }
+  const f=`memory-${stamp()}.md`;
+  const target=await saveTarget(f,'md');   // ask where first: the dialog needs a fresh click, and cancelling costs nothing
+  if(!target) return;
   setBusy(true);
+  const btn=$('saveMem'); btn.textContent=tr('memWorking');
   try{
     const prior = memory ? `Existing memory to update:\n<memory>\n${stripPromptTags(memory.text)}\n</memory>\n\n` : '';
     const r=await fetch(API+'/chat/completions',{method:'POST',headers:headers(key),body:JSON.stringify({
-      model, stream:false, max_tokens:700, usage:{include:true},
+      model, stream:false, max_tokens:700, usage:{include:true}, provider:PRIVACY,
       messages:[{role:'system',content:MEMORY_PROMPT},{role:'user',content:`${prior}Conversation:\n${transcript()}`}]
     })});
     if(!r.ok){ let d=''; try{ const j=await r.json(); d=j.error?.message||''; }catch{} throw apiErr(r.status,d); }
@@ -1573,14 +1639,13 @@ $('saveMem').onclick=async()=>{
     const summary=(j.choices?.[0]?.message?.content||'').trim();
     if(!summary) throw apiErr(0,'empty reply');
     const code=latestCode();
-    const f=`memory-${stamp()}.md`;
     const file=`---\nname: memory-${stamp()}\nsaved: ${new Date().toISOString()}\nmodel: ${model}\n---\n# Memory from an earlier conversation\n\n${summary}\n`
       + (code ? `\n## Latest code\n\n${fence(code)}\n` : '');
-    download(f,file);
-    note(tr('memSaved',f), '', {kind:'info', body:summary});
+    const saved=await writeTarget(target, f, file, 'md');
+    if(saved) note(tr('memSaved', saved.name, whereText(saved)), '', {kind:'info', body:summary});
   }catch(e){
     await reportError(e && e.api ? e : {network:true}, sample);
-  }finally{ setBusy(false); updateMeter(); renderNow(); }
+  }finally{ btn.textContent='Save memory'; setBusy(false); updateMeter(); renderNow(); }
 };
 function renderMemChip(){
   $('memChip').hidden=!memory;
@@ -1592,16 +1657,26 @@ function setMemory(next){
   if(calibrated) calibrated.tokens=Math.max(0,calibrated.tokens+est(systemPrompt())-before);
   renderMemChip(); updateMeter();
 }
-$('loadMem').onclick=()=>$('memFile').click();
+// Load memory opens in the save folder if one is chosen, otherwise where the last file was saved (Chrome and Edge).
+$('loadMem').onclick=async()=>{
+  if(typeof window.showOpenFilePicker!=='function'){ $('memFile').click(); return; }
+  try{
+    const [h]=await window.showOpenFilePicker({...(folder ? {startIn:folder.handle} : {id:'vibe-chat-files'}),
+      types:[{description:'Memory file', accept:{'text/markdown':['.md','.markdown','.txt']}}]});
+    if(h) await loadMemoryFile(await h.getFile());
+  }catch(e){ if(!(e && e.name==='AbortError')) $('memFile').click(); }
+};
 $('memClear').onclick=()=>setMemory(null);
 $('memFile').onchange=async e=>{
-  const f=e.target.files[0]; e.target.value=''; if(!f) return;
+  const f=e.target.files[0]; e.target.value=''; if(f) await loadMemoryFile(f);
+};
+async function loadMemoryFile(f){
   if(f.size>MAX_SKILL_BYTES){ noteT('memBig',f.name,MAX_SKILL_BYTES/1024); return; }
   const t=await f.text();
   if(t.includes('\u0000') || !t.trim()){ noteT('memBad',f.name); return; }
   setMemory({name:parseSkill(f.name,t).name, text:t.trim()});
   infoT('memLoaded', f.name);
-};
+}
 
 /* ---------- voice typing (browser speech recognition) ---------- */
 // This is the browser's SpeechRecognition, not the operating system's dictation: a web page cannot open Windows voice typing or macOS Dictation.

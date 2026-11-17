@@ -1,6 +1,6 @@
 # Intent-Based Development: Student Guide
 
-Version 0.1. Made from the Teacher's Guide, version 0.1.
+Version 0.2. Made from the Teacher's Guide, version 0.2.
 
 This guide shows you how to use vibe-chat. What you build comes from a separate activity guide. You work in a team of 1 or 2, on one laptop. Your teacher will tell you which section to open next. If you are working on your own, go through the sections in order.
 
@@ -12,7 +12,7 @@ This guide shows you how to use vibe-chat. What you build comes from a separate 
 
 In this activity, you build a program without writing code yourself. You tell your AI coding assistant what you want in plain language. The AI writes the code. You test the code and tell the AI what went wrong. Then the AI writes a better version. You repeat this until the code does what you want.
 
-You talk to the AI in vibe-chat, a chat page that opens in your browser. The chat is on the left. The code appears on the right. You paste the code into a testing app, where you run it. Your activity guide names the testing app.
+You talk to the AI in vibe-chat, a chat page that opens in your browser. The chat is on the left. The code appears on the right, with buttons to copy and save it, and a Files tab for any other files the AI makes. You paste the code into a testing app, where you run it. Your activity guide names the testing app.
 
 **Your job:** You describe the goal and test the result. The AI writes the code. You decide whether it does what you wanted.
 
@@ -79,7 +79,10 @@ Your teacher may show token spending on the main screen, for the whole class or 
 4. Open Settings and enter your spend limit: [FILL IN: dollar amount].
    **Look for:** The colored bar at the top. It goes from green to red as you spend. The text next to it shows dollars spent out of your limit. The panel shows tokens in, tokens out, and cost for your last turn and for the whole session. A tilde (~) means the number is an estimate.
    **Troubleshooting: The bar stays empty:** No spend limit is set. Enter it in Settings.
-   **Troubleshooting: You closed or reloaded the tab:** Enter your key again. Your spending totals start over.
+   **Troubleshooting: You closed or reloaded the tab:** Enter your key again, and choose your save folder again (step 5). Your spending totals start over.
+5. Click Choose save folder at the top. Pick the vibe-chat folder in Documents (the one the setup script made). The top now says "Saving to: vibe-chat." Everything you save goes there.
+   **Troubleshooting: Chrome says the folder "contains system files":** Pick the vibe-chat folder inside Documents, not Documents itself.
+   **Troubleshooting: There is no Choose save folder button:** Your browser is not Chrome or Edge. Saving still works; files go to your Downloads folder.
 
 #### 3.3 Questions
 
@@ -116,6 +119,7 @@ Your activity guide tells you what each step means for your task.
 4. Wait for the AI to finish. The code appears on the right. Read the AI's answer.
    **Troubleshooting: Send is greyed out:** You reached your spend limit. Ask your teacher. Raising the limit in Settings turns Send back on and keeps your chat.
    **Troubleshooting: An error from OpenRouter appears in the chat:** Tell your teacher. Your team's key may be out of credit.
+   **Troubleshooting: The chat says the model is only offered by providers that may keep or train on what you send:** vibe-chat protects what you send, so it will not use that model. Choose another model, such as one of the Claude options.
 
 **Starting over:** Reset conversation clears the chat and starts a new conversation. Your spending totals keep counting. Use it only when your activity guide or your teacher says so.
 
@@ -129,6 +133,12 @@ Your activity guide tells you what each step means for your task.
    * **Windows:** Press Windows key+Shift+S, then drag over the error.
    Then ask: "I got these errors. Please return the complete corrected code."
 4. Replace all the code with the new version. Repeat until there are no errors.
+
+**Saving your work.** Nothing is saved on your laptop until you press a Save button. Everything goes to the folder you chose in section 3.2.
+
+* **Save code** saves the latest code as program.ts (or .py or .js). Saving again never replaces an earlier file: the next one is program (2).ts.
+* **The Files tab** shows your latest code at the top, then any other files the AI made, such as notes or an image. Each has a Save button. Save all as zip saves them all in one file.
+* Files in the Files tab are lost when you close the tab or click Reset. Save anything you want to keep first.
 
 #### 4.4 Activity: Run and Observe
 
@@ -185,14 +195,14 @@ Your activity guide lists more objectives for your task.
 
 #### A.1 Concept: How the AI remembers
 
-vibe-chat has two buttons that show how AI memory works. Save chat downloads your whole conversation. Save memory asks the AI to write a short summary of it, called a memory file. You can load the memory file into a new conversation.
+vibe-chat has two buttons that show how AI memory works. Save chat saves your whole conversation. Save memory asks the AI to write a short summary of it, called a memory file. You can load the memory file into a new conversation.
 
 #### A.2 Extension: Save and reload a memory
 
-1. Click Save chat. Your conversation downloads as a markdown file.
-2. Click Save memory. The AI writes a memory file. This uses a few tokens.
+1. Click Save chat. Your conversation is saved in your save folder as a markdown file. The chat tells you where.
+2. Click Save memory. The button says "Saving memory…" while the AI writes a memory file. The file goes in your save folder, and the summary appears in the chat. This uses a few tokens.
 3. Click Reset conversation. The chat starts over. Your spending totals keep counting.
-4. Load the memory file into the new conversation. [TO CONFIRM: how teams load the memory file]
+4. Click Load memory. Your save folder opens. Choose the memory file (its name starts with memory-). A Memory label appears above the chat.
 5. Ask the AI about your earlier work. **Look for:** What does the AI remember? What did it forget?
 
 #### A.3 Questions

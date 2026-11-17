@@ -1,6 +1,6 @@
 # vibe-chat
 
-Single-file browser chat for learning vibe coding. Students use their own OpenRouter key and a chosen model; generated code appears in a read-only code window with Copy and Save buttons, and other files the model makes (Markdown, CSV, SVG images, JSON, HTML) wait in a Files tab until you save them. Tracks tokens and spend against a user-set limit. Works with LTR and RTL languages.
+Single-file browser chat for learning vibe coding, written for high school students. Students use their own OpenRouter key and a chosen model; generated code appears in a read-only code window with Copy and Save buttons, and the latest code plus other files the model makes (Markdown, CSV, SVG images, JSON, HTML) wait in a Files tab until you save them. Every request asks OpenRouter for providers that do not store or train on prompts. Tracks tokens and spend against a user-set limit. Works with LTR and RTL languages.
 
 ## Run (no setup)
 Open `vibe-chat.html` in Chrome or Edge. No server, no install. Camera QR scanning needs https or localhost (Chrome usually allows it from a file too).
@@ -10,8 +10,9 @@ Open `vibe-chat.html` in Chrome or Edge. No server, no install. Camera QR scanni
 - Tests (jsdom, run from the repo root):
   ```
   npm install --no-save jsdom@26
-  node test.js && node dashboard/cost-board.test.js && node test-voice.js && node test-artifacts.js
+  node test.js && node dashboard/cost-board.test.js && node test-voice.js && node test-artifacts.js && node test-saving.js
   ```
+- Rebuild the zip after changing `vibe-chat.html` or `install/`: `bash install/build-zip.sh`.
 
 ## Repo layout
 | Path | What it is |
@@ -22,12 +23,15 @@ Open `vibe-chat.html` in Chrome or Edge. No server, no install. Camera QR scanni
 | `install/` | Pre-workshop setup scripts for students' laptops (`setup-windows.cmd`, `setup-mac.sh`) and `SETUP.txt`, the plain-language instructions to send with them. |
 | `dashboard/` | `cost-board.html`, the instructor projector view, and its tests. |
 | `tools/` | `qr-key.html`, which turns API keys into QR codes for students to scan. See `tools/README.md`. |
-| `vibe-chat-workshop.zip` | Distributable bundle: the app plus the install scripts. Git-ignored, so rebuild it after changing `vibe-chat.html` or `install/`. |
+| `vibe-chat-workshop.zip` | Distributable bundle: the app plus the install scripts. Git-ignored; rebuild it with `bash install/build-zip.sh` after changing `vibe-chat.html` or `install/`. |
 
 ## Before a workshop
 1. Send students `SETUP.txt` and the zip (or the `install/` scripts plus `vibe-chat.html`). They run the setup script, which checks browser, camera and access to openrouter.ai, and copies the app into a folder.
 2. Create one OpenRouter key per student, with a spending limit. Turn the keys into QR codes with `tools/qr-key.html`.
 3. On the day, project the cost board (below) so you can see spend per key.
+
+## Privacy
+Every request (chat, error advice, Save memory) includes OpenRouter's `provider: {data_collection: "deny"}`, so it is routed only to providers that do not store or train on prompts. If no such provider serves the chosen model, OpenRouter refuses the request and the chat tells the student, in English or Hebrew, to choose another model. For the same protection outside the app, also turn off training providers for the account at openrouter.ai/settings/privacy.
 
 ## Settings and Files
 **Code language and extra instructions (Settings).** The default is TypeScript. Pick Python, JavaScript, or "Let the model choose", and optionally add your own instructions (up to 4,000 characters). Both are added to the system prompt, and your instructions take priority over the built-in ones. "Show the exact system prompt" displays what is sent. Settings are remembered in this browser.
@@ -36,10 +40,14 @@ Open `vibe-chat.html` in Chrome or Edge. No server, no install. Camera QR scanni
 
 **Chat layout.** Your messages are always on the left and the assistant's are always on the right, in English and Hebrew alike. Inside each bubble the text runs left-to-right or right-to-left according to its own language.
 
-**Files tab.** When the model makes a file (`.md`, `.txt`, `.csv`, `.json`, `.svg`, `.html`), it appears as a card in the Files tab with a preview. Nothing is written to your computer until you press Save, so the operating system's file rules are never bypassed:
-- **Save** opens the browser's own save dialog (Chrome and Edge). In Safari and Firefox it downloads the file to your Downloads folder instead.
-- **Choose save folder** (Chrome and Edge only) lets you pick one folder once; Save then writes straight into it. Chrome will not accept Documents, Desktop, Downloads or your home folder themselves ("contains system files"), so make a new folder inside Documents, such as `vibe-chat`, and pick that. An existing file is never overwritten: a taken name becomes `name (2).ext`.
-- **Save all as zip** downloads every file in one step.
+**Saving.** Nothing is written to your computer until you press a Save button, so the operating system's file rules are never bypassed. Save code, Save chat, Save memory and every card in the Files tab save the same way:
+- **Choose save folder** (top bar; Chrome and Edge only) lets you pick one folder once; every Save then writes straight into it, and the top bar shows "Saving to: (folder)". Chrome will not accept Documents, Desktop, Downloads or your home folder themselves ("contains system files"), so pick a folder inside Documents, such as the `vibe-chat` folder the setup script makes. An existing file is never overwritten: a taken name becomes `name (2).ext`.
+- With no folder chosen, Save opens the browser's own save dialog (Chrome and Edge). Save memory opens it before it sends the summary request, so cancelling costs nothing. In Safari and Firefox, files download to your Downloads folder.
+- Save chat and Save memory say in the chat where the file went. Load memory opens its file picker in the save folder (or where files were last saved).
+
+**Files tab.** The latest code is pinned at the top as `program.ts` (or `.py`, `.js`). When the model makes a file (`.md`, `.txt`, `.csv`, `.json`, `.svg`, `.html`), it appears as a card below with a preview:
+- **Save** saves that card, as described under Saving.
+- **Save all as zip** downloads every file, including the latest code, in one step.
 - **Discard** removes a card from the list (Restore brings it back). Files live only in the open page: Reset or closing the tab loses them, and the browser warns first if any were never saved.
 
 Optional detail: file names from the model are reduced to a plain name with an allowed extension (no folders), SVG is previewed only as an image, and HTML is shown as text and never run.
@@ -48,7 +56,7 @@ Optional detail: file names from the model are reduced to a plain name with an a
 The mic button (left of the paperclip) uses the browser's speech recognition, not the operating system's dictation. Chrome and Edge send the audio to Google / Microsoft servers; a notice says so on first use. The small EN/HE button under the mic picks English or Hebrew. Firefox is not supported.
 
 ## Not yet verified against a real key
-Voice typing on real laptops (English and Hebrew, microphone permission when the page is opened as a local file), streaming, attachments (PDF via OpenRouter file input), key test, QR scan, file downloads, the save dialog and folder picker in real Chrome, Edge, Safari and Firefox, and the assumption that `usage.cost` is in USD.
+The privacy setting with each model in the list, voice typing on real laptops (English and Hebrew, microphone permission when the page is opened as a local file), streaming, attachments (PDF via OpenRouter file input), key test, QR scan, file downloads, the save dialog and folder picker in real Chrome, Edge, Safari and Firefox, and the assumption that `usage.cost` is in USD.
 
 ## Cost board (instructor projector view)
 `dashboard/cost-board.html` shows, in large type for a projector, how much money one OpenRouter key has left and how much the class has spent, updating every few seconds while students use the key.
